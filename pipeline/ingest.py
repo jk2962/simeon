@@ -156,12 +156,31 @@ def get_training_data(matches, before_utc):
     return matches[matches["kickoff_utc"] < before_utc]
 
 
+def load_env_file():
+    """Copy KEY=VALUE lines from .env into os.environ (stdlib only).
+
+    A variable already set in the environment is left alone. Values are never
+    printed.
+    """
+    path = REPO / ".env"
+    if not path.exists():
+        return
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip().removeprefix("export ").strip()
+        os.environ.setdefault(key, value.strip().strip("'\""))
+
+
 def load_fixtures():
     """Upcoming fixtures: match_id, matchday, kickoff_utc, home, away.
 
     Uses the football-data.org API. If the token is missing or the call fails,
     falls back to data/manual_fixtures.csv with a loud warning.
     """
+    load_env_file()
     token = os.environ.get("FOOTBALL_DATA_API_KEY")
     if not token:
         return _manual_fixtures("FOOTBALL_DATA_API_KEY is not set")
