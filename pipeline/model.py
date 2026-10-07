@@ -9,12 +9,14 @@ Phase 2 backtest rather than added on faith):
   - the Dixon-Coles correction for low-scoring draws (0-0, 1-1).
 """
 
+import warnings
 from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 from scipy.stats import poisson
+from statsmodels.tools.sm_exceptions import ConvergenceWarning
 
 # Only matches within this many days before the latest kickoff in `train` are
 # used for fitting. The tradeoff: a short window follows current strength
@@ -25,6 +27,30 @@ from scipy.stats import poisson
 # the Phase 2 backtest.
 TRAINING_WINDOW_DAYS = 730
 
+# Strength of the pull of each team's attack and defense toward its prior
+# mean (see fit). It is the precision (1 / variance) of a normal prior on the
+# deviation from the prior mean. A useful way to read it: a team's own data
+# is worth roughly "goals scored" (attack) or "goals conceded" (defense), so
+# PRIOR_STRENGTH = 3 means the prior counts about as much as 3 goals.
+#
+# How 3 was chosen, honestly: `python -m pipeline.tune` scored a grid by
+# walk-forward RPS on 2023-24 and 2024-25 only (2025-26 and 2026-27 were NOT
+# used). RPS was flat from 0.01 to 10 (differences within one standard error)
+# and clearly worse at 30 and 100. On the 30 matches involving a team with
+# under 10 matches, shrinkage showed no benefit: the point estimate was
+# slightly worse and got worse with strength. So the data does not justify
+# shrinkage as a predictive gain. 3 is a judgment call that rests on numerical
+# stability (a team with zero goals no longer breaks the fit) and on the prior
+# belief that 5 matches should not fully define a team. See MODEL_NOTES.md.
+PRIOR_STRENGTH = 3.0
+
+# A penalty so weak it changes nothing that matters, but still keeps the fit
+# finite and identified. Used as the "unpenalized" reference, and for the
+# single-season fits behind the promoted-team prior, where every team has 38
+# matches and shrinking would only bias the prior toward zero.
+NEAR_ZERO_STRENGTH = 0.01
+
+MATCHES_PER_SEASON = 380  # a season with exactly this many matches is complete
 MAX_GOALS = 10  # the scoreline grid covers 0-10 goals for each side
 
 
@@ -38,12 +64,14 @@ class FittedModel:
 
     attack:  higher means the team scores more.
     defense: higher means the team CONCEDES more (a weaker defense).
-    Only differences between teams are identified, so store attack and defense
-    centered (each averaging zero across teams) with the level in `intercept`.
+    Each value is "prior mean + fitted deviation". The prior mean is 0 for an
+    established team, so 0 reads as "a typical established team" and the
+    overall level of scoring sits in `intercept`.
 
-    promoted_attack / promoted_defense are the prior used for a team with no
-    training data. They are None when the training data contains no promoted
-    team to learn the prior from.
+    promoted_attack / promoted_defense are the prior mean for a promoted team:
+    how far promoted teams have been from established teams in past seasons.
+    They are also the full estimate for a team with no training data at all.
+    They are None when `train` has no completed season to learn them from.
     """
 
     intercept: float
@@ -60,84 +88,57 @@ def fit(train) -> FittedModel:
     `train` MUST come from ingest.get_training_data(matches, before_utc), with
     columns season, kickoff_utc, home, away, home_goals, away_goals.
 
-    Model: a Poisson GLM (statsmodels, log link) on goals. Reshape the data to
-    one row per team per match (two rows per match) and regress goals on:
-      - the scoring team (attack),
-      - the conceding team (defense),
-      - a home indicator (home advantage, one league-wide value).
-    Home and away goals are treated as independent given these parameters.
+    Model: a Poisson GLM (statsmodels, log link) on goals. The data is reshaped
+    to one row per team per match (two rows per match) and goals are regressed
+    on the scoring team (attack), the conceding team (defense) and a home
+    indicator (home advantage, one league-wide value). Home and away goals are
+    treated as independent given these parameters.
 
-    Promoted-team prior: a team with no Premier League matches in `train` has
-    no fitted strength. Its prior is the average fitted attack and the average
-    fitted defense of promoted teams in past seasons. Promoted teams are
-    identified FROM THE DATA, not hardcoded: a team is promoted in season S if
-    it plays in S but not in the previous season in `train`. The earliest
-    season in `train` has no previous season, so it contributes none.
+    Shrinkage: each team's attack and defense is "prior mean + deviation", and
+    the deviations carry an L2 penalty of strength PRIOR_STRENGTH. A team with
+    many matches is barely affected; a team with few matches is pulled toward
+    its prior mean, and the more so the less data it has.
+
+    Prior mean: 0 (a typical established team) for most teams. A team with no
+    match in the training window before the start of the current season gets
+    the promoted-team prior instead. That prior is the average gap between
+    promoted teams and established teams, measured over each promoted team's
+    full first season. It is identified FROM THE DATA, not hardcoded, and uses
+    only COMPLETED seasons in `train`: the season in progress is excluded.
     """
+    return fit_with_strength(train, PRIOR_STRENGTH)
+
+
+def fit_with_strength(train, prior_strength) -> FittedModel:
+    """fit() with an explicit penalty strength. Used for tuning and in tests."""
     latest = train["kickoff_utc"].max()
     window = train[train["kickoff_utc"] > latest - pd.Timedelta(days=TRAINING_WINDOW_DAYS)]
 
-    # Long format: two rows per match, one for each side's goals.
-    home_rows = pd.DataFrame(
-        {
-            "team": window["home"].to_numpy(),
-            "opponent": window["away"].to_numpy(),
-            "home": 1.0,
-            "goals": window["home_goals"].to_numpy(dtype=float),
-        }
+    promoted_attack, promoted_defense = _promoted_prior(train)
+
+    # Which teams get the promoted prior mean: those with no match in the
+    # window before the current season started. Everyone else gets 0.
+    current_season = window["season"].max()  # '2026-27' > '2025-26' as text
+    season_start = window.loc[window["season"] == current_season, "kickoff_utc"].min()
+    earlier = window[window["kickoff_utc"] < season_start]
+    seen_earlier = set(earlier["home"]) | set(earlier["away"])
+
+    prior_attack = {}
+    prior_defense = {}
+    for team in sorted(set(window["home"]) | set(window["away"])):
+        if team in seen_earlier or promoted_attack is None:
+            prior_attack[team] = 0.0
+            prior_defense[team] = 0.0
+        else:
+            prior_attack[team] = promoted_attack
+            prior_defense[team] = promoted_defense
+
+    intercept, home_advantage, attack, defense = _fit_penalized(
+        window, prior_attack, prior_defense, prior_strength
     )
-    away_rows = pd.DataFrame(
-        {
-            "team": window["away"].to_numpy(),
-            "opponent": window["home"].to_numpy(),
-            "home": 0.0,
-            "goals": window["away_goals"].to_numpy(dtype=float),
-        }
-    )
-    long = pd.concat([home_rows, away_rows], ignore_index=True)
-    teams = sorted(set(long["team"]))
-
-    # Parameterization. One indicator column per team for attack and one per
-    # team for defense would not be identifiable: adding 1 to every attack and
-    # subtracting 1 from the intercept gives the same expected goals. So the
-    # GLM is fitted with a REFERENCE TEAM: the first team alphabetically has
-    # no columns (drop_first=True), which fixes its attack and defense at 0
-    # and makes every other team's value "relative to the reference team".
-    # That is the simplest design matrix to build and to explain.
-    attack_cols = pd.get_dummies(long["team"], prefix="attack", drop_first=True, dtype=float)
-    defense_cols = pd.get_dummies(long["opponent"], prefix="defense", drop_first=True, dtype=float)
-    design = pd.concat([attack_cols, defense_cols, long[["home"]]], axis=1)
-    design = sm.add_constant(design)
-    result = sm.GLM(long["goals"], design, family=sm.families.Poisson()).fit()
-
-    attack = {team: result.params.get(f"attack_{team}", 0.0) for team in teams}
-    defense = {team: result.params.get(f"defense_{team}", 0.0) for team in teams}
-
-    # The fitted values are then re-expressed as SUM-TO-ZERO: subtract each
-    # mean and move it into the intercept. Expected goals are unchanged, but
-    # the numbers no longer depend on which team was the reference: 0 is an
-    # average team, and exp(intercept) is the goals an average team scores
-    # away against an average team.
-    attack_mean = np.mean(list(attack.values()))
-    defense_mean = np.mean(list(defense.values()))
-    attack = {team: float(value - attack_mean) for team, value in attack.items()}
-    defense = {team: float(value - defense_mean) for team, value in defense.items()}
-    intercept = float(result.params["const"] + attack_mean + defense_mean)
-
-    # Promoted-team prior: the average fitted strength of promoted teams.
-    # Known limitation: a promoted team's fitted strength uses ALL its matches
-    # in the window, including any later seasons in which it stayed up.
-    promoted = _promoted_teams(train, window)
-    if promoted:
-        promoted_attack = float(np.mean([attack[team] for team in promoted]))
-        promoted_defense = float(np.mean([defense[team] for team in promoted]))
-    else:
-        promoted_attack = None
-        promoted_defense = None
-
     return FittedModel(
         intercept=intercept,
-        home_advantage=float(result.params["home"]),
+        home_advantage=home_advantage,
         attack=attack,
         defense=defense,
         promoted_attack=promoted_attack,
@@ -145,42 +146,124 @@ def fit(train) -> FittedModel:
     )
 
 
-def _promoted_teams(train, window):
-    """Teams promoted into a season that has matches in the training window.
+def _fit_penalized(matches, prior_attack, prior_defense, strength):
+    """Penalized Poisson fit. Returns (intercept, home_advantage, attack, defense).
 
-    Found from the data: a team is promoted in season S if it plays in S but
-    not in the season before S in `train`. Season membership is read from all
-    of `train` (so the season before the window is known), but only seasons
-    with matches in the window count, because only those teams have a fitted
-    strength that reflects their time as a promoted side.
+    attack and defense are dicts of team -> prior mean + fitted deviation.
+    """
+    # Long format: two rows per match, one for each side's goals.
+    home_rows = pd.DataFrame(
+        {
+            "team": matches["home"].to_numpy(),
+            "opponent": matches["away"].to_numpy(),
+            "home": 1.0,
+            "goals": matches["home_goals"].to_numpy(dtype=float),
+        }
+    )
+    away_rows = pd.DataFrame(
+        {
+            "team": matches["away"].to_numpy(),
+            "opponent": matches["home"].to_numpy(),
+            "home": 0.0,
+            "goals": matches["away_goals"].to_numpy(dtype=float),
+        }
+    )
+    long = pd.concat([home_rows, away_rows], ignore_index=True)
+    teams = sorted(set(long["team"]))
+
+    # Parameterization: attack = prior mean + deviation (same for defense).
+    # The prior means are known numbers, so they go into the GLM OFFSET (a
+    # term added to the linear predictor with its coefficient fixed at 1).
+    # The fitted coefficients are then the DEVIATIONS, one attack column and
+    # one defense column for EVERY team.
+    #
+    # Without a penalty that design is not identifiable: adding 1 to every
+    # attack and subtracting 1 from the intercept gives the same expected
+    # goals, which is why the unpenalized version needed a reference team.
+    # The penalty removes the problem. Of all the equivalent solutions it
+    # picks the one with the smallest deviations, which is the one where the
+    # deviations sum to zero. So no team has to be singled out as reference.
+    offset = long["team"].map(prior_attack) + long["opponent"].map(prior_defense)
+    attack_cols = pd.get_dummies(long["team"], prefix="attack", dtype=float)
+    defense_cols = pd.get_dummies(long["opponent"], prefix="defense", dtype=float)
+    design = pd.concat([attack_cols, defense_cols, long[["home"]]], axis=1)
+    design.insert(0, "const", 1.0)
+
+    # statsmodels minimizes  -loglikelihood / n_rows + sum(alpha * coef^2) / 2.
+    # Setting alpha = strength / n_rows makes that the same as minimizing
+    #     -loglikelihood + (strength / 2) * sum(deviation^2),
+    # i.e. the MAP estimate under a Normal(0, 1 / strength) prior on each
+    # deviation. alpha is 0 for the intercept and home advantage: they are
+    # estimated from every match and need no shrinkage.
+    is_deviation = ~design.columns.isin(["const", "home"])
+    alpha = np.where(is_deviation, strength / len(long), 0.0)
+
+    glm = sm.GLM(long["goals"], design, family=sm.families.Poisson(), offset=offset)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", ConvergenceWarning)  # fail loudly
+        result = glm.fit_regularized(alpha=alpha, L1_wt=0.0)  # L1_wt=0: pure L2
+    coef = pd.Series(np.asarray(result.params), index=design.columns)
+
+    attack = {team: float(prior_attack[team] + coef[f"attack_{team}"]) for team in teams}
+    defense = {team: float(prior_defense[team] + coef[f"defense_{team}"]) for team in teams}
+    return float(coef["const"]), float(coef["home"]), attack, defense
+
+
+def _promoted_prior(train):
+    """(attack, defense) prior mean for a promoted team, or (None, None).
+
+    For every COMPLETED season in `train` that has a previous season:
+      1. find the promoted teams: in this season but not in the previous one;
+      2. fit that season on its own, so each promoted team is measured over
+         its full promoted season (38 matches) and nothing else;
+      3. record each promoted team's gap to the average established team.
+    The prior is the average gap. A gap to established teams is used, not to
+    the league average, because in fit() the established teams' prior mean is
+    0 and the promoted prior has to be on that same scale.
+
+    The season in progress is excluded: a few matches per team would add
+    noise. All completed seasons in `train` are used, including ones older
+    than the training window, because more promoted teams give a steadier
+    average.
     """
     seasons = sorted(train["season"].unique())  # e.g. '2024-25' sorts by date
-    window_seasons = set(window["season"])
-    promoted = set()
+    attack_gaps = []
+    defense_gaps = []
     for previous, season in zip(seasons, seasons[1:]):
-        if season not in window_seasons:
+        matches = train[train["season"] == season]
+        if len(matches) != MATCHES_PER_SEASON:
+            continue  # in progress, or cut short by the training cutoff
+        before = train[train["season"] == previous]
+        season_teams = set(matches["home"]) | set(matches["away"])
+        promoted = season_teams - set(before["home"]) - set(before["away"])
+        established = season_teams - promoted
+        if not promoted:
             continue
-        in_previous = train[train["season"] == previous]
-        in_season = window[window["season"] == season]
-        promoted |= (set(in_season["home"]) | set(in_season["away"])) - (
-            set(in_previous["home"]) | set(in_previous["away"])
-        )
-    return sorted(promoted)
+
+        no_prior = {team: 0.0 for team in season_teams}
+        _, _, attack, defense = _fit_penalized(matches, no_prior, no_prior, NEAR_ZERO_STRENGTH)
+        established_attack = np.mean([attack[team] for team in established])
+        established_defense = np.mean([defense[team] for team in established])
+        attack_gaps += [attack[team] - established_attack for team in promoted]
+        defense_gaps += [defense[team] - established_defense for team in promoted]
+
+    if not attack_gaps:
+        return None, None
+    return float(np.mean(attack_gaps)), float(np.mean(defense_gaps))
 
 
 def _strength(fitted, team):
     """(attack, defense) for a team; the promoted prior if it was never fitted.
 
-    The prior applies ONLY to teams with zero matches in the training window.
-    Known limitation: a team with even a few matches is fitted normally, so
-    its estimate early in a season is very noisy.
+    A team with any match in the training window was fitted (and shrunk
+    toward its prior mean); only a team with zero matches lands here.
     """
     if team in fitted.attack:
         return fitted.attack[team], fitted.defense[team]
     if fitted.promoted_attack is None or fitted.promoted_defense is None:
         raise ValueError(
             f"No fitted strength for '{team}' and no promoted-team prior: "
-            f"the training data contains no promoted team to learn it from."
+            f"the training data has no completed season to learn it from."
         )
     return fitted.promoted_attack, fitted.promoted_defense
 
