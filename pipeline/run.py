@@ -1,6 +1,7 @@
 """Entry point. `python -m pipeline.run --check` loads, validates and reports."""
 
 import argparse
+import subprocess
 
 import numpy as np
 import pandas as pd
@@ -8,6 +9,15 @@ import pandas as pd
 from pipeline import baselines, ingest, model, scoring, validate
 
 WALK_FORWARD_SEASON = "2025-26"
+
+# The model may beat the bookmaker's closing odds by luck, but not by much:
+# those odds contain information the model never sees. A margin above this is
+# treated as a sign that future data leaked into training.
+LEAKAGE_ALARM_MARGIN = 0.005
+
+FORECASTS_DIR = ingest.REPO / "forecasts"
+MATCHES_PER_ROUND = 10
+UTC_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 
 def walk_forward_blocks(season_df):
@@ -88,11 +98,176 @@ def check():
     print(f"Weakest:   {strength.tail(3).to_dict()}")
 
 
+def backtest():
+    """Holdout sanity check: walk forward through 2025-26 one match date at a time.
+
+    2025-26 took no part in any modeling choice, so this is run once, at the
+    committed PRIOR_STRENGTH, to check the model behaves. It must never be
+    used to compare settings.
+    """
+    season = WALK_FORWARD_SEASON
+    history = ingest.load_history()
+    validate.validate_history(history, ingest.season_label(ingest.CURRENT_SEASON))
+    season_df = history[history["season"] == season]
+    promoted = model._promoted_teams(history, season)
+
+    scored = []
+    for _, day in season_df.groupby(season_df["kickoff_utc"].dt.date):
+        # Everything used for this date kicked off strictly before its first
+        # match, so no match that day can inform another one.
+        train = ingest.get_training_data(history, day["kickoff_utc"].min())
+        fitted = model.fit(train)
+        naive = baselines.naive_probs(train)
+        outcomes = scoring.match_outcomes(day)
+
+        model_probs = []
+        for _, match in day.iterrows():
+            p = model.predict(fitted, match["home"], match["away"])
+            model_probs.append([p["p_home"], p["p_draw"], p["p_away"]])
+        book_probs = [baselines.bookmaker_probs(match) for _, match in day.iterrows()]
+
+        scored.append(
+            pd.DataFrame(
+                {
+                    "model": scoring.rps_many(model_probs, outcomes),
+                    "naive": scoring.rps_many(np.tile(naive, (len(day), 1)), outcomes),
+                    "bookmaker": scoring.rps_many(book_probs, outcomes),
+                    "promoted": (day["home"].isin(promoted) | day["away"].isin(promoted)).to_numpy(),
+                }
+            )
+        )
+    scored = pd.concat(scored, ignore_index=True)
+
+    print(f"\n== Holdout backtest, {season}, PRIOR_STRENGTH = {model.PRIOR_STRENGTH} ==")
+    print(f"Refits (match dates): {season_df['kickoff_utc'].dt.date.nunique()}")
+    print(f"Promoted teams: {sorted(promoted)}")
+    print(f"\nMean RPS on the same {len(scored)} matches (lower is better)")
+    for name in ["model", "naive", "bookmaker"]:
+        print(f"  {name:<10} {scored[name].mean():.4f}   n={len(scored)}")
+    with_promoted = scored[scored["promoted"]]
+    others = scored[~scored["promoted"]]
+    print("\nModel RPS by match type")
+    print(f"  involving a promoted team  {with_promoted['model'].mean():.4f}   n={len(with_promoted)}")
+    print(f"  all other matches          {others['model'].mean():.4f}   n={len(others)}")
+
+    model_rps = scored["model"].mean()
+    if scored["bookmaker"].mean() - model_rps > LEAKAGE_ALARM_MARGIN:
+        raise SystemExit(
+            f"\nLEAKAGE ALARM: the model beats the bookmaker by more than "
+            f"{LEAKAGE_ALARM_MARGIN} RPS. Suspect leakage. Investigate before forecasting."
+        )
+    if model_rps > scored["naive"].mean():
+        raise SystemExit("\nSTOP: the model is worse than the naive baseline.")
+    print("\nSanity check passed: no leakage alarm, and the model beats the naive baseline.")
+
+
+def git(*args):
+    """Run a git command in the repo and return its output."""
+    result = subprocess.run(
+        ["git", *args], cwd=ingest.REPO, capture_output=True, text=True, check=True
+    )
+    return result.stdout.strip()
+
+
+def forecast():
+    """Forecast the next round and write it to forecasts/<season>/round-NN.csv.
+
+    The file is the locked record, so this refuses to run when the result
+    could not be trusted or reproduced: uncommitted code, a round that has
+    already started, or a forecast file that already exists.
+    """
+    # The file records the commit that produced it. That is only true if the
+    # code on disk is exactly that commit.
+    if git("status", "--porcelain"):
+        raise SystemExit("REFUSING TO FORECAST: the working tree has uncommitted changes.")
+    model_version = git("rev-parse", "--short", "HEAD")
+
+    history = ingest.load_history()
+    season = ingest.season_label(ingest.CURRENT_SEASON)
+    validate.validate_history(history, season)
+    fixtures = ingest.load_fixtures()
+    fixtures_source = fixtures.attrs["source"]
+
+    # The round to forecast is the matchday of the next fixture to kick off.
+    now = pd.Timestamp.now(tz="UTC")
+    upcoming = fixtures[fixtures["kickoff_utc"] > now]
+    if len(upcoming) == 0:
+        raise SystemExit("REFUSING TO FORECAST: no upcoming fixtures.")
+    matchday = int(upcoming["matchday"].iloc[0])
+    round_df = fixtures[fixtures["matchday"] == matchday]
+    first_kickoff = round_df["kickoff_utc"].min()
+    if now >= first_kickoff:
+        raise SystemExit(f"REFUSING TO FORECAST: round {matchday} has already kicked off.")
+
+    path = FORECASTS_DIR / season / f"round-{matchday:02d}.csv"
+    if path.exists():
+        raise FileExistsError(f"{path} already exists. Forecasts are never overwritten.")
+
+    # One fit for the whole round, on matches before the round's FIRST
+    # kickoff, so every forecast is locked on the same information.
+    train = ingest.get_training_data(history, first_kickoff)
+    fitted = model.fit(train)
+
+    rows = []
+    for _, fixture in round_df.iterrows():
+        p = model.predict(fitted, fixture["home"], fixture["away"])
+        rows.append(
+            {
+                "match_id": fixture["match_id"],
+                "matchday": fixture["matchday"],
+                "kickoff_utc": fixture["kickoff_utc"].strftime(UTC_FORMAT),
+                "home": fixture["home"],
+                "away": fixture["away"],
+                **p,  # p_home, p_draw, p_away, exp_home_goals, exp_away_goals
+                "model_version": model_version,
+                "prior_strength": model.PRIOR_STRENGTH,
+                "generated_at_utc": now.strftime(UTC_FORMAT),
+                "data_through_utc": train["kickoff_utc"].max().strftime(UTC_FORMAT),
+                "fixtures_source": fixtures_source,
+            }
+        )
+    forecasts = pd.DataFrame(rows)
+
+    # Validate before anything is written.
+    if len(forecasts) != MATCHES_PER_ROUND:
+        raise ValueError(f"Round {matchday}: expected {MATCHES_PER_ROUND} fixtures, found {len(forecasts)}")
+    totals = forecasts[["p_home", "p_draw", "p_away"]].sum(axis=1)
+    if ((totals - 1.0).abs() > 1e-9).any():
+        raise ValueError("Forecast probabilities do not sum to 1")
+    canonical = set(pd.read_csv(ingest.TEAMS_CSV)["canonical"])
+    unknown = sorted((set(forecasts["home"]) | set(forecasts["away"])) - canonical)
+    if unknown:
+        raise ValueError(f"Non-canonical team names: {unknown}")
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    forecasts.to_csv(path, index=False, mode="x")  # "x": fail if the file exists
+
+    print(f"\n== Forecasts: {season} round {matchday} ==")
+    print(f"Model version {model_version} | PRIOR_STRENGTH {model.PRIOR_STRENGTH} | fixtures from {fixtures_source}")
+    print(f"Generated {now.strftime(UTC_FORMAT)} | data through {train['kickoff_utc'].max().strftime(UTC_FORMAT)}")
+    print(f"First kickoff {first_kickoff.strftime(UTC_FORMAT)}\n")
+    print(f"{'Kickoff (New York)':<20}{'Match':<36}{'Home':>6}{'Draw':>6}{'Away':>6}   Exp. goals")
+    for fixture, row in zip(round_df.itertuples(), forecasts.itertuples()):
+        new_york = fixture.kickoff_utc.tz_convert("America/New_York")
+        print(
+            f"{new_york:%a %d %b %H:%M}    {row.home + ' v ' + row.away:<36}"
+            f"{row.p_home:>6.1%}{row.p_draw:>6.1%}{row.p_away:>6.1%}"
+            f"   {row.exp_home_goals:.2f} - {row.exp_away_goals:.2f}"
+        )
+    print(f"\nWritten to {path}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="simeon pipeline")
     parser.add_argument("--check", action="store_true", help="load, validate and report")
+    parser.add_argument("--backtest", action="store_true", help="holdout sanity check on 2025-26")
+    parser.add_argument("--forecast", action="store_true", help="forecast and lock the next round")
     args = parser.parse_args()
     if args.check:
         check()
+    elif args.backtest:
+        backtest()
+    elif args.forecast:
+        forecast()
     else:
         parser.print_help()

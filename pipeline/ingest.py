@@ -205,7 +205,9 @@ def load_fixtures():
     )
     fixtures["home"] = canonical_names(fixtures["home"], "fd_org_name")
     fixtures["away"] = canonical_names(fixtures["away"], "fd_org_name")
-    return fixtures.sort_values("kickoff_utc", kind="stable").reset_index(drop=True)
+    fixtures = fixtures.sort_values("kickoff_utc", kind="stable").reset_index(drop=True)
+    fixtures.attrs["source"] = "api"  # read by run.forecast for the audit trail
+    return fixtures
 
 
 def _manual_fixtures(reason):
@@ -226,4 +228,6 @@ def _manual_fixtures(reason):
     fixtures["kickoff_utc"] = pd.to_datetime(fixtures["kickoff_utc"], utc=True)
     fixtures["home"] = canonical_names(fixtures["home"], "canonical")
     fixtures["away"] = canonical_names(fixtures["away"], "canonical")
-    return fixtures.sort_values("kickoff_utc", kind="stable").reset_index(drop=True)
+    fixtures = fixtures.sort_values("kickoff_utc", kind="stable").reset_index(drop=True)
+    fixtures.attrs["source"] = "manual"
+    return fixtures
