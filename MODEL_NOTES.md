@@ -40,16 +40,17 @@ matches per ever-present team. The alternatives are a shorter or longer
 window, or using everything with time-decay weights. 730 is a reasoned
 starting point and has NOT been tuned; the Phase 2 backtest decides.
 
-**Promoted-team prior.** A team with no match in the window before the
-current season gets a prior mean learned from the data: the average gap
-between promoted teams and established teams over each promoted team's full
-first season, using completed seasons only (currently attack -0.37, defense
-+0.33). The alternative is a league-average prior mean, which is clearly too
-generous: on the tuning seasons it scored worse on matches involving a team
-with under 10 matches (RPS 0.134 vs 0.113, n=30). Known limitations: every
-promoted team gets the same prior, whatever it did in the Championship, and a
-returning team with old matches in the window (Ipswich) is rated on those old
-matches. Second-division results would improve both.
+**Promoted-team prior.** A team is "promoted" in a season if it did not play
+in the previous Premier League season. One function applies that definition
+both to learn the prior and to decide who gets it, so a team that came back
+after a season or more away (Ipswich in 2026-27) counts as promoted even with
+older matches in the window. The prior mean is learned from the data: the
+average gap between promoted teams and established teams over each promoted
+team's full promoted season, using completed seasons only (currently attack
+-0.37, defense +0.33). The alternative is a league-average prior mean, which
+is clearly too generous. Known limitations: every promoted team gets the same
+prior, whatever it did in the Championship, and a returning team's old
+matches still count as data. Second-division results would improve both.
 
 **Shrinkage (MAP estimation).** What: each team's deviation from its prior
 mean carries an L2 penalty, so the fit minimizes
@@ -66,21 +67,24 @@ Bayesian MAP estimate under a Normal(0, 1/PRIOR_STRENGTH) prior on each
 deviation, because the log of that prior is exactly the penalty term. A rough
 reading: PRIOR_STRENGTH = 3 means the prior counts like about 3 goals of data.
 
-How PRIOR_STRENGTH = 3 was chosen: `python -m pipeline.tune` scored the grid
+How PRIOR_STRENGTH = 3 was chosen: `python -m pipeline.tune` scores the grid
 0.01, 3, 10, 30, 100 by walk-forward RPS on 2023-24 and 2024-25:
 
-    0.01: 0.1964   3: 0.1965   10: 0.1966   30: 0.1975   100: 0.2021
+    0.01: 0.1964   3: 0.1962   10: 0.1957   30: 0.1951   100: 0.1965
 
-The honest reading: RPS is flat from 0.01 to 10 (differences within one
-standard error) and worse beyond. On the 30 matches involving a team with
-under 10 matches, shrinkage showed NO benefit: RPS was 0.110 unpenalized,
-0.113 at 3 and 0.115 at 10. The newly promoted teams in those seasons really
-were as bad as their first results. So 3 is not justified by predictive gain.
-It rests on numerical stability and on the prior belief that 5 matches should
-not fully define a team. 2025-26 and 2026-27 were excluded from this choice:
-2025-26 is the Phase 2 sanity check, and a setting chosen on a season cannot
-be honestly tested on it. The alternative is a full Bayesian model with a
-fitted prior variance; I would revisit the value with more seasons of data.
+The honest reading: the lowest value is at 30, but 30 beats 3 by only 0.0011,
+which is 1.3 standard errors, so the grid does not separate them. The pattern
+also points two ways. Across all matches more shrinkage looks slightly
+better; on the 30 matches involving a team with under 10 matches it looks
+worse (RPS 0.110 unpenalized, 0.113 at 3, 0.116 at 10, 0.121 at 30). And at
+10 or 30 established teams move a lot (Arsenal's defense by 0.06 and 0.13),
+which breaks the requirement that teams with 70+ matches barely move. So 3 is
+not a tuned optimum. It rests on numerical stability and on the prior belief
+that 5 matches should not fully define a team. 2025-26 and 2026-27 were
+excluded from this choice: 2025-26 is the Phase 2 sanity check, and a setting
+chosen on a season cannot be honestly tested on it. The alternative is a full
+Bayesian model with a fitted prior variance, or a stronger penalty for
+promoted teams only; I would revisit the value with more seasons of data.
 
 **Renormalizing the 0-10 grid.** The grid ignores scorelines with 11 or more
 goals, so its cells sum to slightly less than 1. Dividing by the total makes
@@ -93,13 +97,51 @@ weights (as in Dixon-Coles) add a tuning parameter, and a tuned parameter
 needs a backtest to justify it. The hard window is the simple version of the
 same idea. I would add decay if the backtest shows it lowers RPS.
 
+## Decision log
+
+- **2026-10-07: PRIOR_STRENGTH kept at 3; a pre-stated rule was deliberately
+  overridden.** The rule set before rerunning the grid was "update the
+  constant if the best grid value changes". After the promoted-rule fix the
+  best value changed from 0.01 to 30, and the constant was NOT updated.
+  Reasons:
+  1. 30 beats 3 by 0.0011 RPS, which is 1.3 standard errors, and most of it
+     comes from a single season (2024-25: -0.0018; 2023-24: -0.0003).
+  2. The small-sample subset that shrinkage is meant to help gets worse with
+     higher strength (30 matches: 0.113 at 3, 0.121 at 30).
+  3. Strength 30 compresses established teams heavily (Arsenal's defense
+     moves by 0.13), and about half of its gain comes from matches with no
+     promoted team at all (-0.0007, 0.7 standard errors). How much to
+     compress established teams is a separate modeling choice, to be
+     evaluated later on more seasons.
+
+## Known divergences from the market reference
+
+Checked on 2026-10-05 against approximate market probabilities for the round
+of 10 October. The model was NOT adjusted to match them.
+
+- **Coventry v Newcastle: model 11/21/68, market 29/26/45.** Coventry scored
+  1 goal and conceded 10 in its 5 matches. At strength 3 the prior counts
+  like about 3 goals, so its attack only moves from -1.72 to -0.93 against a
+  prior mean of -0.37.
+- **Ipswich v Fulham: model 21/22/57, market 35/27/39.** Ipswich now gets the
+  promoted prior mean, but that changed almost nothing (away 56% to 57%). It
+  has 39 matches in the window, 34 of them from its 2024-25 relegation
+  season, and that data alone already rates it slightly below a typical
+  promoted team. The divergence comes from old data about a different squad,
+  not from the prior mean. The model knows nothing about its Championship
+  season.
+
 ## Open issues
 
-- **The "promoted" definition should be "not in last season's Premier
-  League".** Today a team gets the promoted prior mean only if it has no match
-  in the 730-day window before the current season. A team that came back up
-  after one season away (Ipswich in 2026-27) is therefore treated as
-  established and rated on its old matches.
+- **A returning team is still misread before its first match of the
+  season.** Until it has played, the latest season in the training data is
+  the previous one, so the fit cannot know the team is promoted and rates it
+  on its old matches with a prior mean of 0.
+- **PRIOR_STRENGTH is not settled.** After the promoted-rule fix the grid's
+  lowest RPS is at 30, not separated from 3 by the data, and 10 or 30 would
+  move established teams by more than the tests allow. One strength for all
+  teams may be the wrong shape: promoted teams may want more shrinkage than
+  established ones.
 - **Evaluate PRIOR_STRENGTH on early-season promoted-team matches, which
   needs older Premier League seasons from the same source.** The repo's data
   starts in 2020-21, and promoted teams can only be identified from 2021-22

@@ -81,3 +81,23 @@ def test_teams_with_many_matches_barely_move():
         unpenalized_values = relative_to_established(getattr(unpenalized, name), established)
         for team in established:
             assert abs(shrunk_values[team] - unpenalized_values[team]) < 0.05, (team, name)
+
+
+def test_team_promoted_after_seasons_away_gets_promoted_prior_mean():
+    # Ipswich: relegated in 2024-25 (two seasons ago), absent in 2025-26,
+    # promoted for 2026-27. Its 2024-25 matches are still in the window.
+    train = ingest.get_training_data(ingest.load_history(), CUTOFF)
+    played = train[(train["home"] == "Ipswich") | (train["away"] == "Ipswich")]
+    assert set(played["season"]) >= {"2024-25", "2026-27"}
+    assert "2025-26" not in set(played["season"])
+
+    assert "Ipswich" in model._promoted_teams(train, "2026-27")
+    assert "Arsenal" not in model._promoted_teams(train, "2026-27")
+
+    # With an enormous penalty every deviation is forced to about 0, so each
+    # team's fitted value IS its prior mean.
+    fitted = model.fit_with_strength(train, 1e6)
+    assert abs(fitted.attack["Ipswich"] - fitted.promoted_attack) < 1e-3
+    assert abs(fitted.defense["Ipswich"] - fitted.promoted_defense) < 1e-3
+    assert abs(fitted.attack["Arsenal"]) < 1e-3  # established: prior mean 0
+    assert abs(fitted.defense["Arsenal"]) < 1e-3

@@ -33,13 +33,13 @@ TRAINING_WINDOW_DAYS = 730
 # is worth roughly "goals scored" (attack) or "goals conceded" (defense), so
 # PRIOR_STRENGTH = 3 means the prior counts about as much as 3 goals.
 #
-# How 3 was chosen, honestly: `python -m pipeline.tune` scored a grid by
-# walk-forward RPS on 2023-24 and 2024-25 only (2025-26 and 2026-27 were NOT
-# used). RPS was flat from 0.01 to 10 (differences within one standard error)
-# and clearly worse at 30 and 100. On the 30 matches involving a team with
-# under 10 matches, shrinkage showed no benefit: the point estimate was
-# slightly worse and got worse with strength. So the data does not justify
-# shrinkage as a predictive gain. 3 is a judgment call that rests on numerical
+# How 3 was chosen, honestly: `python -m pipeline.tune` scores a grid by
+# walk-forward RPS on 2023-24 and 2024-25 only (2025-26 and 2026-27 are NOT
+# used). The lowest RPS is at 30, but it beats 3 by only 1.3 standard errors,
+# so the data does not separate them. On the 30 matches involving a team with
+# under 10 matches, more shrinkage looked worse, not better. And at 10 or 30
+# established teams move by more than 0.05, which the tests forbid. So 3 is
+# not a tuned optimum. It is a judgment call that rests on numerical
 # stability (a team with zero goals no longer breaks the fit) and on the prior
 # belief that 5 matches should not fully define a team. See MODEL_NOTES.md.
 PRIOR_STRENGTH = 3.0
@@ -99,12 +99,14 @@ def fit(train) -> FittedModel:
     many matches is barely affected; a team with few matches is pulled toward
     its prior mean, and the more so the less data it has.
 
-    Prior mean: 0 (a typical established team) for most teams. A team with no
-    match in the training window before the start of the current season gets
-    the promoted-team prior instead. That prior is the average gap between
-    promoted teams and established teams, measured over each promoted team's
-    full first season. It is identified FROM THE DATA, not hardcoded, and uses
-    only COMPLETED seasons in `train`: the season in progress is excluded.
+    Prior mean: 0 (a typical established team) for most teams. A team that is
+    promoted in the current season gets the promoted-team prior instead.
+    "Promoted" means it did not play in the previous Premier League season
+    (see _promoted_teams), whether or not it has older matches in the window.
+    The prior is the average gap between promoted teams and established
+    teams, measured over each promoted team's full promoted season. It is
+    identified FROM THE DATA, not hardcoded, and uses only COMPLETED seasons
+    in `train`: the season in progress is excluded.
     """
     return fit_with_strength(train, PRIOR_STRENGTH)
 
@@ -116,22 +118,20 @@ def fit_with_strength(train, prior_strength) -> FittedModel:
 
     promoted_attack, promoted_defense = _promoted_prior(train)
 
-    # Which teams get the promoted prior mean: those with no match in the
-    # window before the current season started. Everyone else gets 0.
-    current_season = window["season"].max()  # '2026-27' > '2025-26' as text
-    season_start = window.loc[window["season"] == current_season, "kickoff_utc"].min()
-    earlier = window[window["kickoff_utc"] < season_start]
-    seen_earlier = set(earlier["home"]) | set(earlier["away"])
+    # Teams promoted in the current season get the promoted prior mean.
+    # Everyone else gets 0.
+    current_season = train["season"].max()  # '2026-27' > '2025-26' as text
+    promoted = _promoted_teams(train, current_season)
 
     prior_attack = {}
     prior_defense = {}
     for team in sorted(set(window["home"]) | set(window["away"])):
-        if team in seen_earlier or promoted_attack is None:
-            prior_attack[team] = 0.0
-            prior_defense[team] = 0.0
-        else:
+        if team in promoted and promoted_attack is not None:
             prior_attack[team] = promoted_attack
             prior_defense[team] = promoted_defense
+        else:
+            prior_attack[team] = 0.0
+            prior_defense[team] = 0.0
 
     intercept, home_advantage, attack, defense = _fit_penalized(
         window, prior_attack, prior_defense, prior_strength
@@ -209,11 +209,33 @@ def _fit_penalized(matches, prior_attack, prior_defense, strength):
     return float(coef["const"]), float(coef["home"]), attack, defense
 
 
+def _promoted_teams(train, season):
+    """Teams that are promoted in `season`: they play in it, but did not play
+    in the previous Premier League season in `train`.
+
+    This is the one definition of "promoted", used both to learn the prior
+    (_promoted_prior) and to decide which teams get it (fit_with_strength).
+    A team that was relegated and came back after one or more seasons away
+    counts as promoted, even if its older matches are still in the training
+    window. Returns an empty set for the earliest season in `train`, which
+    has no previous season to compare with.
+    """
+    seasons = sorted(train["season"].unique())  # e.g. '2024-25' sorts by date
+    position = seasons.index(season)
+    if position == 0:
+        return set()
+    previous = train[train["season"] == seasons[position - 1]]
+    current = train[train["season"] == season]
+    return (set(current["home"]) | set(current["away"])) - (
+        set(previous["home"]) | set(previous["away"])
+    )
+
+
 def _promoted_prior(train):
     """(attack, defense) prior mean for a promoted team, or (None, None).
 
     For every COMPLETED season in `train` that has a previous season:
-      1. find the promoted teams: in this season but not in the previous one;
+      1. find the promoted teams (_promoted_teams);
       2. fit that season on its own, so each promoted team is measured over
          its full promoted season (38 matches) and nothing else;
       3. record each promoted team's gap to the average established team.
@@ -226,19 +248,17 @@ def _promoted_prior(train):
     than the training window, because more promoted teams give a steadier
     average.
     """
-    seasons = sorted(train["season"].unique())  # e.g. '2024-25' sorts by date
     attack_gaps = []
     defense_gaps = []
-    for previous, season in zip(seasons, seasons[1:]):
+    for season in sorted(train["season"].unique()):
         matches = train[train["season"] == season]
         if len(matches) != MATCHES_PER_SEASON:
             continue  # in progress, or cut short by the training cutoff
-        before = train[train["season"] == previous]
-        season_teams = set(matches["home"]) | set(matches["away"])
-        promoted = season_teams - set(before["home"]) - set(before["away"])
-        established = season_teams - promoted
+        promoted = _promoted_teams(train, season)
         if not promoted:
-            continue
+            continue  # the earliest season: no previous season to compare with
+        season_teams = set(matches["home"]) | set(matches["away"])
+        established = season_teams - promoted
 
         no_prior = {team: 0.0 for team in season_teams}
         _, _, attack, defense = _fit_penalized(matches, no_prior, no_prior, NEAR_ZERO_STRENGTH)
