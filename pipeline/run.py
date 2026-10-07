@@ -5,7 +5,7 @@ import argparse
 import numpy as np
 import pandas as pd
 
-from pipeline import baselines, ingest, scoring, validate
+from pipeline import baselines, ingest, model, scoring, validate
 
 WALK_FORWARD_SEASON = "2025-26"
 
@@ -75,6 +75,17 @@ def check():
     print(f"\n== RPS on {WALK_FORWARD_SEASON} (lower is better) ==")
     print(f"Naive baseline (walk-forward): {walk_forward_naive_rps(history, WALK_FORWARD_SEASON):.4f}")
     print(f"Bookmaker baseline:            {bookmaker_rps(history, WALK_FORWARD_SEASON):.4f}")
+
+    # Ranked on attack minus defense. Only current-season teams are listed:
+    # the fit also holds relegated teams that still have matches in the window.
+    print(f"\n== Model: team strength, {current} teams only ==")
+    fitted = model.fit(ingest.get_training_data(history, now))
+    current_teams = sorted(set(current_df["home"]) | set(current_df["away"]))
+    strength = pd.Series({t: fitted.attack[t] - fitted.defense[t] for t in current_teams})
+    strength = strength.sort_values(ascending=False).round(3)
+    print(f"Home advantage: {fitted.home_advantage:.3f} (x{np.exp(fitted.home_advantage):.2f} goals)")
+    print(f"Strongest: {strength.head(3).to_dict()}")
+    print(f"Weakest:   {strength.tail(3).to_dict()}")
 
 
 if __name__ == "__main__":
