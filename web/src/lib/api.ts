@@ -34,18 +34,36 @@ async function load<T>(apiPath: string, isValid: (data: unknown) => boolean): Pr
   }
 }
 
-// ponytail: only the outer shape is checked. Add per-field validation when
-// the real backend exists and the pages start reading the fields.
-const isObject = (data: unknown) => typeof data === "object" && data !== null && !Array.isArray(data);
+const isObject = (data: unknown): data is Record<string, unknown> =>
+  typeof data === "object" && data !== null && !Array.isArray(data);
+const isRows = (data: unknown, numbers: string[]): boolean =>
+  Array.isArray(data) &&
+  data.every((row) => isObject(row) && typeof row.teamCode === "string" && numbers.every((key) => Number.isFinite(row[key])));
+
+// Every field the Snapshot page reads, so a malformed response becomes an
+// error note instead of a crash.
+function isSnapshot(data: unknown): boolean {
+  return (
+    isObject(data) &&
+    typeof data.lockedAt === "string" &&
+    typeof data.modelVersion === "string" &&
+    isRows(data.predictedTable, ["predictedPosition", "expectedPoints", "pTitle", "pTop4", "pRelegation"]) &&
+    (data.predictedTable as Record<string, unknown>[]).every(
+      (row) => Array.isArray(row.positionProbabilities) && row.positionProbabilities.every(Number.isFinite),
+    ) &&
+    isRows(data.actualTable, ["position", "points"])
+  );
+}
 
 export function getMatchweeks(): Promise<Result<MatchweekSummary[]>> {
   return load("/matchweeks", Array.isArray);
 }
 
 export function getSnapshot(matchweek: number): Promise<Result<Snapshot>> {
-  return load(`/matchweeks/${matchweek}/snapshot`, isObject);
+  return load(`/matchweeks/${matchweek}/snapshot`, isSnapshot);
 }
 
+// ponytail: outer shape only. Add field checks when the Matches page reads them.
 export function getMatches(matchweek: number): Promise<Result<Match[]>> {
   return load(`/matchweeks/${matchweek}/matches`, Array.isArray);
 }

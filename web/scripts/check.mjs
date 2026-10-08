@@ -2,7 +2,8 @@
 // internally inconsistent or the chip color rule breaks.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { TEAMS, chipColor, getTeam, luminance } from "../src/config/teams.ts";
+import { TEAMS, chipColor, contrast, fillOnWhite, getTeam, luminance, textOn } from "../src/config/teams.ts";
+import { percent, utcDate, utcDateTime } from "../src/lib/format.ts";
 
 const read = (file) => JSON.parse(readFileSync(new URL(`../mocks/${file}`, import.meta.url), "utf8"));
 const near = (a, b, tolerance = 1e-9) => Math.abs(a - b) <= tolerance;
@@ -24,6 +25,36 @@ assert.equal(rendered.COV, "#59CBE8"); // sky blue
 assert.equal(rendered.FUL, "#000000"); // black
 assert.equal(rendered.LEE, "#1D428A"); // navy
 assert.equal(getTeam("ZZZ").name, "ZZZ"); // unknown code: no crash
+
+// --- display formats ---
+assert.deepEqual([0, 0.0049, 0.005, 0.0149, 0.4411, 0.9949, 0.995, 0.9951, 1].map(percent),
+  ["<1%", "<1%", "1%", "1%", "44%", "99%", "99%", ">99%", ">99%"]);
+assert.equal(utcDateTime("2026-10-07T22:35:46Z"), "Oct 7, 22:35 UTC");
+assert.equal(utcDateTime("2026-10-08T00:05:00Z"), "Oct 8, 00:05 UTC");
+assert.equal(utcDate("2026-10-07T22:35:46Z"), "Oct 7, 2026");
+assert.equal(fillOnWhite("#000000", 0.5), "#808080");
+assert.equal(fillOnWhite("#EF0107", 1), "#EF0107");
+assert.equal(textOn("#FFFFFF"), "#141414");
+assert.equal(textOn("#132257"), "#FFFFFF");
+assert.equal(textOn("#EF0107"), "#000000"); // neither ink nor white reaches 4.5:1
+
+// The standings after adding one round of results to a table.
+function addRound(table, matches) {
+  const rows = Object.fromEntries(table.map((row) => [row.teamCode, { ...row }]));
+  for (const { home, away, result } of matches) {
+    for (const [code, scored, conceded] of [[home, result.home, result.away], [away, result.away, result.home]]) {
+      const row = rows[code];
+      row.played += 1;
+      row.goalsFor += scored;
+      row.goalsAgainst += conceded;
+      row[scored > conceded ? "won" : scored === conceded ? "drawn" : "lost"] += 1;
+      row.points += scored > conceded ? 3 : scored === conceded ? 1 : 0;
+    }
+  }
+  return rows;
+}
+const rank = (row) => [row.points, row.goalsFor - row.goalsAgainst, row.goalsFor];
+let previousRound = null; // { snapshot, matches } of the matchweek before
 
 // --- mock data ---
 const matchweeks = read("matchweeks.json");
@@ -72,6 +103,34 @@ for (const { matchweek, status, matchesLockedAt, tableLockedAt } of matchweeks) 
     assert.ok(movers.length >= 3, `${at} only ${movers.length} teams moved 2+ places`);
   }
   previousTable = snapshot.predictedTable;
+
+  // Grid text: every written percentage has at least 4.5:1 against its cell.
+  const max = Math.max(...snapshot.predictedTable.flatMap((row) => row.positionProbabilities));
+  for (const row of snapshot.predictedTable) {
+    row.positionProbabilities.forEach((p, k) => {
+      if (p < 0.1) return;
+      const fill = fillOnWhite(chipColor(getTeam(row.teamCode)).hex, p / max);
+      const ratio = contrast(textOn(fill), fill);
+      assert.ok(ratio >= 4.5, `${at} ${row.teamCode} position ${k + 1}: text contrast ${ratio.toFixed(2)} on ${fill}`);
+    });
+  }
+
+  // actualTable is the standings the forecast was locked on: after round N-1.
+  for (const row of snapshot.actualTable) assert.equal(row.played, matchweek - 1, `${at} ${row.teamCode} played`);
+  snapshot.actualTable.forEach((row, i) => {
+    if (i === 0) return;
+    const [above, below] = [rank(snapshot.actualTable[i - 1]), rank(row)];
+    const firstDifference = above.findIndex((value, j) => value !== below[j]);
+    assert.ok(firstDifference === -1 || above[firstDifference] > below[firstDifference], `${at} order at position ${i + 1}`);
+  });
+  if (previousRound) {
+    // Equal to last week's standings plus last week's results, field for field.
+    const expected = addRound(previousRound.snapshot.actualTable, previousRound.matches);
+    for (const row of snapshot.actualTable) {
+      assert.deepEqual({ ...row, position: 0 }, { ...expected[row.teamCode], position: 0 }, `${at} ${row.teamCode} standings`);
+    }
+  }
+  previousRound = { snapshot, matches };
   let goalsFor = 0;
   let goalsAgainst = 0;
   snapshot.actualTable.forEach((row, i) => {

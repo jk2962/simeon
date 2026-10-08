@@ -257,6 +257,9 @@ for (const round of ROUNDS) {
       : simulate(results, fixtures.filter((f) => f.matchday >= matchweek), ratings);
   tables.push(predictedTable);
 
+  // The standings the forecast was locked on: everything before this round.
+  const standings = actualTable(results);
+
   const matches: Match[] = [];
   const roundResults: Result[] = [];
   for (const f of roundFixtures) {
@@ -317,7 +320,7 @@ for (const round of ROUNDS) {
     dataThrough: round.dataThrough,
     modelVersion: MODEL_VERSION,
     predictedTable,
-    actualTable: actualTable(results),
+    actualTable: standings,
   };
   mkdirSync(new URL(`mw-${matchweek}/`, OUT), { recursive: true });
   writeFileSync(new URL(`mw-${matchweek}/matches.json`, OUT), JSON.stringify(matches, null, 2) + "\n");

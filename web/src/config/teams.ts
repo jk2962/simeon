@@ -62,3 +62,33 @@ export function chipColor(team: Team): { hex: string; variant: "primary" | "seco
     ? { hex: team.secondary, variant: "secondary" }
     : { hex: team.primary, variant: "primary" };
 }
+
+// WCAG contrast ratio between two #RRGGBB colors, 1 to 21.
+export function contrast(a: string, b: string): number {
+  const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (light + 0.05) / (dark + 0.05);
+}
+
+// The opaque color that `hex` at the given opacity shows as on a white surface.
+export function fillOnWhite(hex: string, opacity: number): string {
+  const alpha = Math.min(1, Math.max(0, opacity));
+  return (
+    "#" +
+    [1, 3, 5]
+      .map((i) => Math.round(255 + (parseInt(hex.slice(i, i + 2), 16) - 255) * alpha))
+      .map((channel) => channel.toString(16).padStart(2, "0"))
+      .join("")
+      .toUpperCase()
+  );
+}
+
+const INK = "#141414";
+const WHITE = "#FFFFFF";
+
+// Ink or white text, whichever reads better on the fill. A few mid-tone fills
+// (a saturated red at full strength) leave both just under 4.5:1; those get
+// pure black, which with white always clears it.
+export function textOn(fill: string): string {
+  const best = contrast(INK, fill) >= contrast(WHITE, fill) ? INK : WHITE;
+  return contrast(best, fill) >= 4.5 ? best : "#000000";
+}

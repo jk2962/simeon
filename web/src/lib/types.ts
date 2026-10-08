@@ -41,6 +41,12 @@ export interface Snapshot {
   dataThrough: string; // ISO 8601, kickoff of the latest match the model saw
   modelVersion: string; // short commit hash
   predictedTable: PredictedRow[];
+  /**
+   * The standings at the moment the forecast was locked, that is after round
+   * `matchweek - 1`. The forecast and this table describe the same state of
+   * information. The results of round `matchweek` appear on the Matches page
+   * and in the next snapshot.
+   */
   actualTable: ActualRow[];
 }
 
