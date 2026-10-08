@@ -173,6 +173,26 @@ applies from the next locked round, is logged in the decision log, and never
 regenerates locked forecasts. Anything that changes documented behavior is a
 model change.
 
+**7. Simulation-only candidates.** A candidate that changes only the season
+simulation, with every match forecast unchanged (checked by test), is
+evaluated under this point instead of point 2's threshold. Season outcomes
+give too few independent data points for a 2-SE test, and such a change
+cannot affect the scored match forecasts.
+
+- Its value must be derived from past-season data, not tuned against
+  backtest results or 2026-27 output. Example: prior variance set to the
+  observed spread of promoted teams' first-season fitted strengths, 2021-22
+  to 2024-25.
+- Sanity backtest: simulate from rounds 6, 15 and 25 of 2021-22 to 2024-25.
+  Adopted only if mean RPS over final positions is not higher than the
+  current simulation's, and coverage of 80% intervals for final points is
+  closer to 80%. Both numbers logged. No standard-error threshold: this
+  evidence is acknowledged as weak.
+- The 2025-26 holdout is not used; it is reserved for match-model
+  candidates.
+- At most 1 simulation-only candidate per checkpoint, separate from the 2
+  match-model slots.
+
 ## Decision log
 
 - **2026-10-07: PRIOR_STRENGTH kept at 3; a pre-stated rule was deliberately
@@ -200,10 +220,15 @@ model change.
   The cause: the Laplace draws treat PRIOR_STRENGTH = 3, which was chosen for
   numerical stability, as a literal prior, and for a promoted team with 5
   matches that prior is very wide. Named candidate for the round-10
-  checkpoint: a simulation prior variance separate from PRIOR_STRENGTH,
-  evaluated by backtesting season simulations from round 6 of 2023-24 and
-  2024-25 against final positions (RPS over positions). Locked snapshots are
-  not regenerated.
+  checkpoint: a simulation prior variance separate from PRIOR_STRENGTH. It
+  is a simulation-only candidate, evaluated under point 7 of the policy: its
+  value derived from past-season data, then a sanity backtest from rounds 6,
+  15 and 25 of 2021-22 to 2024-25 (RPS over final positions, and coverage of
+  80% intervals for final points). It takes the simulation-only slot, not
+  one of the 2 match-model slots. Locked snapshots are not regenerated.
+  Point 7 was added later the same day, before any backtest was run; this
+  entry first read "evaluated by backtesting season simulations from round 6
+  of 2023-24 and 2024-25 against final positions (RPS over positions)".
 
 ## Known divergences from the market reference
 
