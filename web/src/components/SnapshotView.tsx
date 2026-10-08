@@ -1,5 +1,5 @@
 import { getSnapshot } from "@/lib/api";
-import { utcDateTime } from "@/lib/format";
+import { ukDateTime } from "@/lib/format";
 import { ErrorNote } from "./ErrorNote";
 import { ForecastTable } from "./ForecastTable";
 import { PositionGrid } from "./PositionGrid";
@@ -34,7 +34,7 @@ export async function SnapshotView({ matchweek, hasPrevious }: { matchweek: numb
     <>
       <h1 className="text-3xl font-bold">Season forecast</h1>
       <p className="mt-1 text-muted">
-        Locked before MW{matchweek} · <time dateTime={snapshot.lockedAt}>{utcDateTime(snapshot.lockedAt)}</time> · model{" "}
+        Locked before MW{matchweek} · <time dateTime={snapshot.lockedAt}>{ukDateTime(snapshot.lockedAt)}</time> · model{" "}
         {snapshot.modelVersion.slice(0, 7)}
       </p>
       {!previous && (

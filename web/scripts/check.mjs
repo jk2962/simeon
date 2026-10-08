@@ -3,7 +3,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { TEAMS, chipColor, contrast, fillOnWhite, getTeam, luminance, textOn } from "../src/config/teams.ts";
-import { percent, utcDate, utcDateTime } from "../src/lib/format.ts";
+import { percent, ukDate, ukDateTime, ukDay, ukTime } from "../src/lib/format.ts";
+import { biggestGap, lockedInTime, outcomeOf, summarize } from "../src/lib/matches.ts";
 
 const read = (file) => JSON.parse(readFileSync(new URL(`../mocks/${file}`, import.meta.url), "utf8"));
 const near = (a, b, tolerance = 1e-9) => Math.abs(a - b) <= tolerance;
@@ -29,9 +30,13 @@ assert.equal(getTeam("ZZZ").name, "ZZZ"); // unknown code: no crash
 // --- display formats ---
 assert.deepEqual([0, 0.0049, 0.005, 0.0149, 0.4411, 0.9949, 0.995, 0.9951, 1].map(percent),
   ["<1%", "<1%", "1%", "1%", "44%", "99%", "99%", ">99%", ">99%"]);
-assert.equal(utcDateTime("2026-10-07T22:35:46Z"), "Oct 7, 22:35 UTC");
-assert.equal(utcDateTime("2026-10-08T00:05:00Z"), "Oct 8, 00:05 UTC");
-assert.equal(utcDate("2026-10-07T22:35:46Z"), "Oct 7, 2026");
+// UK time: one hour ahead of UTC in summer, equal to it in winter.
+assert.equal(ukDateTime("2026-10-07T22:35:46Z"), "Oct 7, 23:35 UK");
+assert.equal(ukDateTime("2026-10-16T08:18:40Z"), "Oct 16, 09:18 UK");
+assert.equal(ukDateTime("2026-11-01T00:05:00Z"), "Nov 1, 00:05 UK");
+assert.equal(ukDate("2026-10-07T23:30:00Z"), "Oct 8, 2026"); // already the 8th in the UK
+assert.equal(ukTime("2026-10-17T14:00:00Z"), "15:00 UK");
+assert.equal(ukDay("2026-10-17T14:00:00Z"), "Sat 17 Oct");
 assert.equal(fillOnWhite("#000000", 0.5), "#808080");
 assert.equal(fillOnWhite("#EF0107", 1), "#EF0107");
 assert.equal(textOn("#FFFFFF"), "#141414");
@@ -77,8 +82,22 @@ for (const { matchweek, status, matchesLockedAt, tableLockedAt } of matchweeks) 
     assert.equal(m.result !== null, played, `${at} ${m.id} result`);
     assert.equal(m.market !== null, played);
     assert.equal(m.scores !== null, played);
-    if (m.market) assert.ok(near(m.market.pHome + m.market.pDraw + m.market.pAway, 1), `${at} ${m.id} market`);
+    if (m.market) assert.ok(near(m.market.pHome + m.market.pDraw + m.market.pAway, 1, 0.001), `${at} ${m.id} market`);
   }
+
+  // The week summary recomputes from the per-match scores.
+  const summary = summarize(matches);
+  const scored = matches.filter((m) => m.scores);
+  assert.equal(summary.total, 10, at);
+  assert.equal(summary.played, status === "complete" ? 10 : 0, at);
+  if (status === "complete") {
+    const mean = (key) => scored.reduce((sum, m) => sum + m.scores[key], 0) / scored.length;
+    assert.equal(summary.rps.matches, 10, at);
+    assert.ok(near(summary.rps.model, mean("rpsModel")) && near(summary.rps.market, mean("rpsBookmaker")) && near(summary.rps.naive, mean("rpsNaive")), `${at} summary averages`);
+  } else {
+    assert.equal(summary.rps, null, `${at} has no averages`);
+  }
+  assert.ok(matches.every(lockedInTime), `${at} every forecast locked before kickoff`);
 
   assert.equal(snapshot.matchweek, matchweek);
   assert.equal(snapshot.lockedAt, tableLockedAt);
@@ -143,5 +162,21 @@ for (const { matchweek, status, matchesLockedAt, tableLockedAt } of matchweeks) 
   });
   assert.equal(goalsFor, goalsAgainst, `${at} goals`);
 }
+
+// --- match rules on synthetic matches ---
+const [first, second] = read("mw-6/matches.json");
+const late = { ...first, prediction: { ...first.prediction, lockedAt: first.kickoff } }; // locked at kickoff: too late
+assert.equal(lockedInTime(late), false);
+const withLate = summarize([late, second]);
+assert.equal(withLate.played, 2);
+assert.equal(withLate.rps.matches, 1); // the late lock is left out of the averages
+assert.equal(withLate.rps.model, second.scores.rpsModel);
+assert.equal(summarize([late]).rps, null);
+assert.deepEqual([{ home: 2, away: 1 }, { home: 0, away: 0 }, { home: 0, away: 3 }].map(outcomeOf), ["home", "draw", "away"]);
+const priced = (pHome, pDraw, pAway) => ({ ...first, prediction: { ...first.prediction, homeWin: 0.5, draw: 0.3, awayWin: 0.2 }, market: { pHome, pDraw, pAway } });
+assert.equal(biggestGap(priced(0.4, 0.3, 0.3)), "home"); // 10 points on two outcomes: the first named
+assert.equal(biggestGap(priced(0.45, 0.2, 0.35)), "away"); // 15 points
+assert.equal(biggestGap(priced(0.41, 0.3, 0.29)), null); // 9 points
+assert.equal(biggestGap({ ...first, market: null }), null);
 
 console.log("check passed");

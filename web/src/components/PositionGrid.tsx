@@ -15,22 +15,23 @@ export function PositionGrid({ rows }: { rows: PredictedRow[] }) {
   const sticky = "sticky bg-surface";
 
   return (
-    // Below 1024px the grid scrolls inside this box, so its sticky header and
-    // club column hold against the box. From 1024px it fits the page.
+    // Below 1024px the grid scrolls sideways inside this box and only the club
+    // column sticks: the box has no height limit, so it never traps the page's
+    // vertical scroll. From 1024px it fits the page and the header row sticks.
     <div
       role="region"
       aria-label="Finishing position probabilities"
       tabIndex={0}
-      className="max-h-[75vh] overflow-auto border border-rule bg-surface lg:max-h-none lg:overflow-visible"
+      className="overflow-x-auto border border-rule bg-surface lg:overflow-visible"
     >
       <table className="w-full min-w-[60rem] border-separate border-spacing-0 text-xs lg:min-w-0 lg:table-fixed">
         <thead>
           <tr>
-            <th scope="col" className={`${sticky} top-0 left-0 z-20 w-20 border-b border-rule px-2 py-2 text-left font-medium text-muted lg:w-44`}>
+            <th scope="col" className={`${sticky} left-0 z-20 w-20 border-b border-rule px-2 py-2 text-left font-medium text-muted lg:top-0 lg:w-44`}>
               Club
             </th>
             {positions.map((k) => (
-              <th key={k} scope="col" className={`${sticky} top-0 z-10 border-b border-rule py-2 font-medium text-muted`}>
+              <th key={k} scope="col" className={`border-b border-rule bg-surface py-2 font-medium text-muted lg:sticky lg:top-0 lg:z-10`}>
                 {k}
               </th>
             ))}

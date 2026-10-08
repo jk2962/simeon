@@ -13,6 +13,12 @@ export function usingMocks(): boolean {
   return !process.env.API_BASE_URL && process.env.NODE_ENV !== "production";
 }
 
+// The time of the request. Read here, after io(), so it is never baked into the build.
+export async function requestTime(): Promise<number> {
+  await io();
+  return Date.now();
+}
+
 async function load<T>(apiPath: string, isValid: (data: unknown) => boolean): Promise<Result<T>> {
   await io(); // request time only: nothing here is baked into the build
   try {
@@ -55,6 +61,31 @@ function isSnapshot(data: unknown): boolean {
   );
 }
 
+const hasNumbers = (data: unknown, keys: string[]): boolean => isObject(data) && keys.every((key) => Number.isFinite(data[key]));
+const nullOr = (data: unknown, keys: string[]): boolean => data === null || hasNumbers(data, keys);
+
+// Every field the Matches page reads.
+function isMatches(data: unknown): boolean {
+  return (
+    Array.isArray(data) &&
+    data.every((match) => {
+      if (!isObject(match) || !isObject(match.prediction)) return false;
+      const { prediction } = match;
+      return (
+        ["id", "kickoff", "home", "away"].every((key) => typeof match[key] === "string") &&
+        hasNumbers(prediction, ["homeWin", "draw", "awayWin"]) &&
+        hasNumbers(prediction.expectedGoals, ["home", "away"]) &&
+        (prediction.analysis === null || typeof prediction.analysis === "string") &&
+        typeof prediction.lockedAt === "string" &&
+        (prediction.lockReason === null || typeof prediction.lockReason === "string") &&
+        nullOr(match.result, ["home", "away"]) &&
+        nullOr(match.market, ["pHome", "pDraw", "pAway"]) &&
+        nullOr(match.scores, ["rpsModel", "rpsNaive", "rpsBookmaker"])
+      );
+    })
+  );
+}
+
 export function getMatchweeks(): Promise<Result<MatchweekSummary[]>> {
   return load("/matchweeks", Array.isArray);
 }
@@ -63,7 +94,6 @@ export function getSnapshot(matchweek: number): Promise<Result<Snapshot>> {
   return load(`/matchweeks/${matchweek}/snapshot`, isSnapshot);
 }
 
-// ponytail: outer shape only. Add field checks when the Matches page reads them.
 export function getMatches(matchweek: number): Promise<Result<Match[]>> {
-  return load(`/matchweeks/${matchweek}/matches`, Array.isArray);
+  return load(`/matchweeks/${matchweek}/matches`, isMatches);
 }
