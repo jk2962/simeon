@@ -184,6 +184,9 @@ cannot affect the scored match forecasts.
   observed spread of promoted teams' first-season fitted strengths, 2021-22
   to 2024-25.
 - Sanity backtest: simulate from rounds 6, 15 and 25 of 2021-22 to 2024-25.
+  The derived value for each backtest season is computed from the other
+  seasons only (leave-one-season-out), so no season tests a value derived
+  from itself. The value put into use is derived from all of them.
   Adopted only if mean RPS over final positions is not higher than the
   current simulation's, and coverage of 80% intervals for final points is
   closer to 80%. Both numbers logged. No standard-error threshold: this
@@ -229,6 +232,11 @@ cannot affect the scored match forecasts.
   Point 7 was added later the same day, before any backtest was run; this
   entry first read "evaluated by backtesting season simulations from round 6
   of 2023-24 and 2024-25 against final positions (RPS over positions)".
+- **2026-10-08: Point 7 amended, before round 6 kicked off and before any
+  backtest was run.** In the sanity backtest, the derived value for each
+  season is now computed from the other seasons only (leave-one-season-out).
+  As first written, a value derived from 2021-22 to 2024-25 would have been
+  tested on those same seasons.
 
 ## Known divergences from the market reference
 
