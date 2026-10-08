@@ -1,0 +1,212 @@
+[
+  {
+    "id": "560620",
+    "kickoff": "2026-10-23T19:00:00Z",
+    "home": "IPS",
+    "away": "NFO",
+    "prediction": {
+      "homeWin": 0.1704,
+      "draw": 0.2135,
+      "awayWin": 0.6161,
+      "expectedGoals": {
+        "home": 0.92,
+        "away": 1.96
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-22T16:17:31Z",
+      "lockReason": null
+    },
+    "result": null,
+    "market": null,
+    "scores": null
+  },
+  {
+    "id": "560614",
+    "kickoff": "2026-10-24T11:30:00Z",
+    "home": "AVL",
+    "away": "MCI",
+    "prediction": {
+      "homeWin": 0.239,
+      "draw": 0.2412,
+      "awayWin": 0.5198,
+      "expectedGoals": {
+        "home": 1.07,
+        "away": 1.69
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-22T16:17:31Z",
+      "lockReason": null
+    },
+    "result": null,
+    "market": null,
+    "scores": null
+  },
+  {
+    "id": "560616",
+    "kickoff": "2026-10-24T14:00:00Z",
+    "home": "ARS",
+    "away": "EVE",
+    "prediction": {
+      "homeWin": 0.6596,
+      "draw": 0.1974,
+      "awayWin": 0.143,
+      "expectedGoals": {
+        "home": 2.1,
+        "away": 0.86
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-22T16:17:31Z",
+      "lockReason": null
+    },
+    "result": null,
+    "market": null,
+    "scores": null
+  },
+  {
+    "id": "560618",
+    "kickoff": "2026-10-24T14:00:00Z",
+    "home": "COV",
+    "away": "FUL",
+    "prediction": {
+      "homeWin": 0.2348,
+      "draw": 0.2399,
+      "awayWin": 0.5253,
+      "expectedGoals": {
+        "home": 1.06,
+        "away": 1.7
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-22T16:17:31Z",
+      "lockReason": null
+    },
+    "result": null,
+    "market": null,
+    "scores": null
+  },
+  {
+    "id": "560617",
+    "kickoff": "2026-10-24T16:30:00Z",
+    "home": "CHE",
+    "away": "TOT",
+    "prediction": {
+      "homeWin": 0.5692,
+      "draw": 0.2284,
+      "awayWin": 0.2024,
+      "expectedGoals": {
+        "home": 1.82,
+        "away": 0.99
+      },
+      "analysis": "Tottenham's poor start pulled their rating down sharply. Home advantage does most of the remaining work here.",
+      "lockedAt": "2026-10-22T16:17:31Z",
+      "lockReason": null
+    },
+    "result": null,
+    "market": null,
+    "scores": null
+  },
+  {
+    "id": "560612",
+    "kickoff": "2026-10-25T14:00:00Z",
+    "home": "LIV",
+    "away": "BHA",
+    "prediction": {
+      "homeWin": 0.5336,
+      "draw": 0.2379,
+      "awayWin": 0.2285,
+      "expectedGoals": {
+        "home": 1.73,
+        "away": 1.04
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-22T16:17:31Z",
+      "lockReason": null
+    },
+    "result": null,
+    "market": null,
+    "scores": null
+  },
+  {
+    "id": "560613",
+    "kickoff": "2026-10-25T14:00:00Z",
+    "home": "CRY",
+    "away": "NEW",
+    "prediction": {
+      "homeWin": 0.3624,
+      "draw": 0.2591,
+      "awayWin": 0.3785,
+      "expectedGoals": {
+        "home": 1.32,
+        "away": 1.36
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-22T16:17:31Z",
+      "lockReason": null
+    },
+    "result": null,
+    "market": null,
+    "scores": null
+  },
+  {
+    "id": "560615",
+    "kickoff": "2026-10-25T14:00:00Z",
+    "home": "MUN",
+    "away": "BOU",
+    "prediction": {
+      "homeWin": 0.476,
+      "draw": 0.2499,
+      "awayWin": 0.2741,
+      "expectedGoals": {
+        "home": 1.58,
+        "away": 1.14
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-22T16:17:31Z",
+      "lockReason": null
+    },
+    "result": null,
+    "market": null,
+    "scores": null
+  },
+  {
+    "id": "560619",
+    "kickoff": "2026-10-25T14:00:00Z",
+    "home": "HUL",
+    "away": "BRE",
+    "prediction": {
+      "homeWin": 0.3649,
+      "draw": 0.2591,
+      "awayWin": 0.376,
+      "expectedGoals": {
+        "home": 1.33,
+        "away": 1.35
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-22T16:17:31Z",
+      "lockReason": null
+    },
+    "result": null,
+    "market": null,
+    "scores": null
+  },
+  {
+    "id": "560621",
+    "kickoff": "2026-10-25T16:30:00Z",
+    "home": "SUN",
+    "away": "LEE",
+    "prediction": {
+      "homeWin": 0.4272,
+      "draw": 0.2563,
+      "awayWin": 0.3165,
+      "expectedGoals": {
+        "home": 1.47,
+        "away": 1.23
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-22T16:17:31Z",
+      "lockReason": null
+    },
+    "result": null,
+    "market": null,
+    "scores": null
+  }
+]

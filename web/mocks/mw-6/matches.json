@@ -1,0 +1,322 @@
+[
+  {
+    "id": "560593",
+    "kickoff": "2026-10-10T11:30:00Z",
+    "home": "ARS",
+    "away": "LEE",
+    "prediction": {
+      "homeWin": 0.6299,
+      "draw": 0.2218,
+      "awayWin": 0.1483,
+      "expectedGoals": {
+        "home": 1.83,
+        "away": 0.75
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-07T22:35:46Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 2,
+      "away": 0
+    },
+    "market": {
+      "pHome": 0.6456,
+      "pDraw": 0.2245,
+      "pAway": 0.1299
+    },
+    "scores": {
+      "rpsModel": 0.0795,
+      "rpsNaive": 0.2049,
+      "rpsBookmaker": 0.0712
+    }
+  },
+  {
+    "id": "560592",
+    "kickoff": "2026-10-10T14:00:00Z",
+    "home": "SUN",
+    "away": "BHA",
+    "prediction": {
+      "homeWin": 0.3342,
+      "draw": 0.2602,
+      "awayWin": 0.4056,
+      "expectedGoals": {
+        "home": 1.25,
+        "away": 1.4
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-07T22:35:46Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 0,
+      "away": 2
+    },
+    "market": {
+      "pHome": 0.3802,
+      "pDraw": 0.2547,
+      "pAway": 0.3651
+    },
+    "scores": {
+      "rpsModel": 0.2325,
+      "rpsNaive": 0.3349,
+      "rpsBookmaker": 0.2738
+    }
+  },
+  {
+    "id": "560595",
+    "kickoff": "2026-10-10T14:00:00Z",
+    "home": "CHE",
+    "away": "BOU",
+    "prediction": {
+      "homeWin": 0.4483,
+      "draw": 0.2439,
+      "awayWin": 0.3078,
+      "expectedGoals": {
+        "home": 1.61,
+        "away": 1.3
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-07T22:35:46Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 0,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.4673,
+      "pDraw": 0.2326,
+      "pAway": 0.3001
+    },
+    "scores": {
+      "rpsModel": 0.3401,
+      "rpsNaive": 0.3349,
+      "rpsBookmaker": 0.3541
+    }
+  },
+  {
+    "id": "560599",
+    "kickoff": "2026-10-10T14:00:00Z",
+    "home": "IPS",
+    "away": "FUL",
+    "prediction": {
+      "homeWin": 0.208,
+      "draw": 0.2175,
+      "awayWin": 0.5745,
+      "expectedGoals": {
+        "home": 1.09,
+        "away": 1.96
+      },
+      "analysis": "Most of Ipswich's matches in the training window come from their 2024-25 relegation season with a different squad. The model has no second-division data, so it may rate them too low.",
+      "lockedAt": "2026-10-07T22:35:46Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 0,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.248,
+      "pDraw": 0.2347,
+      "pAway": 0.5173
+    },
+    "scores": {
+      "rpsModel": 0.1122,
+      "rpsNaive": 0.3349,
+      "rpsBookmaker": 0.1473
+    }
+  },
+  {
+    "id": "560601",
+    "kickoff": "2026-10-10T14:00:00Z",
+    "home": "AVL",
+    "away": "BRE",
+    "prediction": {
+      "homeWin": 0.4079,
+      "draw": 0.2462,
+      "awayWin": 0.3459,
+      "expectedGoals": {
+        "home": 1.53,
+        "away": 1.39
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-07T22:35:46Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 0,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.3969,
+      "pDraw": 0.2512,
+      "pAway": 0.3519
+    },
+    "scores": {
+      "rpsModel": 0.2971,
+      "rpsNaive": 0.3349,
+      "rpsBookmaker": 0.2888
+    }
+  },
+  {
+    "id": "560600",
+    "kickoff": "2026-10-10T16:30:00Z",
+    "home": "MUN",
+    "away": "TOT",
+    "prediction": {
+      "homeWin": 0.5087,
+      "draw": 0.2273,
+      "awayWin": 0.264,
+      "expectedGoals": {
+        "home": 1.85,
+        "away": 1.28
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-07T22:35:46Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 3,
+      "away": 0
+    },
+    "market": {
+      "pHome": 0.503,
+      "pDraw": 0.2349,
+      "pAway": 0.2621
+    },
+    "scores": {
+      "rpsModel": 0.1555,
+      "rpsNaive": 0.2049,
+      "rpsBookmaker": 0.1579
+    }
+  },
+  {
+    "id": "560594",
+    "kickoff": "2026-10-11T13:00:00Z",
+    "home": "HUL",
+    "away": "EVE",
+    "prediction": {
+      "homeWin": 0.3461,
+      "draw": 0.3311,
+      "awayWin": 0.3228,
+      "expectedGoals": {
+        "home": 0.91,
+        "away": 0.87
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-07T22:35:46Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 1,
+      "away": 2
+    },
+    "market": {
+      "pHome": 0.332,
+      "pDraw": 0.3802,
+      "pAway": 0.2878
+    },
+    "scores": {
+      "rpsModel": 0.2892,
+      "rpsNaive": 0.3349,
+      "rpsBookmaker": 0.3087
+    }
+  },
+  {
+    "id": "560596",
+    "kickoff": "2026-10-11T13:00:00Z",
+    "home": "CRY",
+    "away": "NFO",
+    "prediction": {
+      "homeWin": 0.3604,
+      "draw": 0.2755,
+      "awayWin": 0.3641,
+      "expectedGoals": {
+        "home": 1.2,
+        "away": 1.21
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-07T22:35:46Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 0,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.3757,
+      "pDraw": 0.2847,
+      "pAway": 0.3396
+    },
+    "scores": {
+      "rpsModel": 0.2671,
+      "rpsNaive": 0.3349,
+      "rpsBookmaker": 0.2886
+    }
+  },
+  {
+    "id": "560598",
+    "kickoff": "2026-10-11T15:30:00Z",
+    "home": "LIV",
+    "away": "MCI",
+    "prediction": {
+      "homeWin": 0.3757,
+      "draw": 0.2351,
+      "awayWin": 0.3892,
+      "expectedGoals": {
+        "home": 1.57,
+        "away": 1.61
+      },
+      "analysis": "The closest match of the round on expected goals, 1.57 against 1.61. Neither side reaches 40%.",
+      "lockedAt": "2026-10-07T22:35:46Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 4,
+      "away": 2
+    },
+    "market": {
+      "pHome": 0.4107,
+      "pDraw": 0.2374,
+      "pAway": 0.3519
+    },
+    "scores": {
+      "rpsModel": 0.2706,
+      "rpsNaive": 0.2049,
+      "rpsBookmaker": 0.2356
+    }
+  },
+  {
+    "id": "560597",
+    "kickoff": "2026-10-12T19:00:00Z",
+    "home": "COV",
+    "away": "NEW",
+    "prediction": {
+      "homeWin": 0.1134,
+      "draw": 0.2076,
+      "awayWin": 0.679,
+      "expectedGoals": {
+        "home": 0.62,
+        "away": 1.9
+      },
+      "analysis": "Coventry have one goal from five matches, and the promoted-team prior only partly offsets that. The model sits well below market prices on the home side. Coventry scoring twice or avoiding defeat would count against it.",
+      "lockedAt": "2026-10-07T22:35:46Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 3,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.1305,
+      "pDraw": 0.2304,
+      "pAway": 0.6391
+    },
+    "scores": {
+      "rpsModel": 0.6236,
+      "rpsNaive": 0.2049,
+      "rpsBookmaker": 0.5822
+    }
+  }
+]

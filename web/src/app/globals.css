@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+/* Grayscale only. The default palette is removed so that no saturated
+   utility exists: the only saturated colors on the site are club colors,
+   set inline by TeamChip. */
+@theme {
+  --color-*: initial;
+  --color-page: #f5f5f5;
+  --color-surface: #ffffff;
+  --color-ink: #141414;
+  --color-muted: #5f5f5f;
+  --color-rule: #d9d9d9;
+  --color-outline: #bdbdbd;
+  --color-transparent: transparent;
+}
+
+@theme inline {
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-page);
+  color: var(--color-ink);
+  /* Every number on the site lines up in columns. */
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}

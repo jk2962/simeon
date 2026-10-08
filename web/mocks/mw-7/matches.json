@@ -1,0 +1,322 @@
+[
+  {
+    "id": "560603",
+    "kickoff": "2026-10-17T11:30:00Z",
+    "home": "EVE",
+    "away": "CHE",
+    "prediction": {
+      "homeWin": 0.4196,
+      "draw": 0.257,
+      "awayWin": 0.3234,
+      "expectedGoals": {
+        "home": 1.45,
+        "away": 1.24
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-16T08:17:52Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 1,
+      "away": 0
+    },
+    "market": {
+      "pHome": 0.4585,
+      "pDraw": 0.2682,
+      "pAway": 0.2733
+    },
+    "scores": {
+      "rpsModel": 0.2207,
+      "rpsNaive": 0.2049,
+      "rpsBookmaker": 0.184
+    }
+  },
+  {
+    "id": "560602",
+    "kickoff": "2026-10-17T14:00:00Z",
+    "home": "FUL",
+    "away": "HUL",
+    "prediction": {
+      "homeWin": 0.4626,
+      "draw": 0.252,
+      "awayWin": 0.2854,
+      "expectedGoals": {
+        "home": 1.55,
+        "away": 1.16
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-16T08:17:52Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 2,
+      "away": 2
+    },
+    "market": {
+      "pHome": 0.4604,
+      "pDraw": 0.2632,
+      "pAway": 0.2764
+    },
+    "scores": {
+      "rpsModel": 0.1477,
+      "rpsNaive": 0.1449,
+      "rpsBookmaker": 0.1442
+    }
+  },
+  {
+    "id": "560610",
+    "kickoff": "2026-10-17T14:00:00Z",
+    "home": "MCI",
+    "away": "IPS",
+    "prediction": {
+      "homeWin": 0.8294,
+      "draw": 0.1154,
+      "awayWin": 0.0552,
+      "expectedGoals": {
+        "home": 2.86,
+        "away": 0.63
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-16T08:17:52Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 6,
+      "away": 0
+    },
+    "market": {
+      "pHome": 0.8149,
+      "pDraw": 0.1323,
+      "pAway": 0.0528
+    },
+    "scores": {
+      "rpsModel": 0.0161,
+      "rpsNaive": 0.2049,
+      "rpsBookmaker": 0.0185
+    }
+  },
+  {
+    "id": "560611",
+    "kickoff": "2026-10-17T14:00:00Z",
+    "home": "BRE",
+    "away": "LIV",
+    "prediction": {
+      "homeWin": 0.3485,
+      "draw": 0.2587,
+      "awayWin": 0.3928,
+      "expectedGoals": {
+        "home": 1.29,
+        "away": 1.39
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-16T08:17:52Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 0,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.302,
+      "pDraw": 0.2636,
+      "pAway": 0.4344
+    },
+    "scores": {
+      "rpsModel": 0.2451,
+      "rpsNaive": 0.3349,
+      "rpsBookmaker": 0.2056
+    }
+  },
+  {
+    "id": "560607",
+    "kickoff": "2026-10-17T16:30:00Z",
+    "home": "NEW",
+    "away": "AVL",
+    "prediction": {
+      "homeWin": 0.439,
+      "draw": 0.2551,
+      "awayWin": 0.3059,
+      "expectedGoals": {
+        "home": 1.49,
+        "away": 1.2
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-16T08:17:52Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 2,
+      "away": 0
+    },
+    "market": {
+      "pHome": 0.4185,
+      "pDraw": 0.2362,
+      "pAway": 0.3453
+    },
+    "scores": {
+      "rpsModel": 0.2041,
+      "rpsNaive": 0.2049,
+      "rpsBookmaker": 0.2287
+    }
+  },
+  {
+    "id": "560604",
+    "kickoff": "2026-10-18T13:00:00Z",
+    "home": "BOU",
+    "away": "SUN",
+    "prediction": {
+      "homeWin": 0.564,
+      "draw": 0.2299,
+      "awayWin": 0.2061,
+      "expectedGoals": {
+        "home": 1.81,
+        "away": 1
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-16T08:17:52Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 0,
+      "away": 0
+    },
+    "market": {
+      "pHome": 0.572,
+      "pDraw": 0.2303,
+      "pAway": 0.1977
+    },
+    "scores": {
+      "rpsModel": 0.1803,
+      "rpsNaive": 0.1449,
+      "rpsBookmaker": 0.1831
+    }
+  },
+  {
+    "id": "560605",
+    "kickoff": "2026-10-18T13:00:00Z",
+    "home": "LEE",
+    "away": "MUN",
+    "prediction": {
+      "homeWin": 0.3754,
+      "draw": 0.2591,
+      "awayWin": 0.3655,
+      "expectedGoals": {
+        "home": 1.35,
+        "away": 1.33
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-16T08:17:52Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 0,
+      "away": 2
+    },
+    "market": {
+      "pHome": 0.3474,
+      "pDraw": 0.2736,
+      "pAway": 0.379
+    },
+    "scores": {
+      "rpsModel": 0.2718,
+      "rpsNaive": 0.3349,
+      "rpsBookmaker": 0.2532
+    }
+  },
+  {
+    "id": "560609",
+    "kickoff": "2026-10-18T13:00:00Z",
+    "home": "BHA",
+    "away": "CRY",
+    "prediction": {
+      "homeWin": 0.5697,
+      "draw": 0.2282,
+      "awayWin": 0.2021,
+      "expectedGoals": {
+        "home": 1.82,
+        "away": 0.99
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-16T08:17:52Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 2,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.577,
+      "pDraw": 0.2274,
+      "pAway": 0.1956
+    },
+    "scores": {
+      "rpsModel": 0.113,
+      "rpsNaive": 0.2049,
+      "rpsBookmaker": 0.1086
+    }
+  },
+  {
+    "id": "560608",
+    "kickoff": "2026-10-18T15:30:00Z",
+    "home": "NFO",
+    "away": "ARS",
+    "prediction": {
+      "homeWin": 0.2553,
+      "draw": 0.2456,
+      "awayWin": 0.4991,
+      "expectedGoals": {
+        "home": 1.1,
+        "away": 1.64
+      },
+      "analysis": "Arsenal are favoured away from home. Forest's rating has barely moved since the start of the season.",
+      "lockedAt": "2026-10-16T08:17:52Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 0,
+      "away": 2
+    },
+    "market": {
+      "pHome": 0.2835,
+      "pDraw": 0.2091,
+      "pAway": 0.5074
+    },
+    "scores": {
+      "rpsModel": 0.158,
+      "rpsNaive": 0.3349,
+      "rpsBookmaker": 0.1615
+    }
+  },
+  {
+    "id": "560606",
+    "kickoff": "2026-10-19T19:00:00Z",
+    "home": "TOT",
+    "away": "COV",
+    "prediction": {
+      "homeWin": 0.6224,
+      "draw": 0.2113,
+      "awayWin": 0.1663,
+      "expectedGoals": {
+        "home": 1.98,
+        "away": 0.91
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-16T08:17:52Z",
+      "lockReason": null
+    },
+    "result": {
+      "home": 0,
+      "away": 0
+    },
+    "market": {
+      "pHome": 0.6128,
+      "pDraw": 0.1974,
+      "pAway": 0.1898
+    },
+    "scores": {
+      "rpsModel": 0.2075,
+      "rpsNaive": 0.1449,
+      "rpsBookmaker": 0.2058
+    }
+  }
+]
