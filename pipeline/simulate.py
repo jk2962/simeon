@@ -14,7 +14,14 @@ import numpy as np
 import pandas as pd
 
 from pipeline import ingest, model, validate
-from pipeline.run import FORECASTS_DIR, UTC_FORMAT, git
+from pipeline.run import (
+    FORECASTS_DIR,
+    UTC_FORMAT,
+    git,
+    is_whole_round,
+    lock_units,
+    round_started,
+)
 
 N_RUNS = 10_000
 SEED = 2026  # recorded in the snapshot, so a locked file can be reproduced
@@ -182,22 +189,29 @@ def snapshot():
     validate.validate_history(history, season)
     fixtures = ingest.load_fixtures()
 
+    # One table per round: a rescheduled match on its own gets none. Locked
+    # forecasts are ignored ({}), so this picks the same round whether it
+    # runs before or after run.forecast.
     now = pd.Timestamp.now(tz="UTC")
-    upcoming = fixtures[fixtures["kickoff_utc"] > now]
-    if len(upcoming) == 0:
-        raise SystemExit("REFUSING TO SIMULATE: no upcoming fixtures.")
-    matchday = int(upcoming["matchday"].iloc[0])
-    first_kickoff = fixtures.loc[fixtures["matchday"] == matchday, "kickoff_utc"].min()
-    if now >= first_kickoff:
-        raise SystemExit(f"REFUSING TO SIMULATE: round {matchday} has already kicked off.")
+    round_df = next((u for u in lock_units(fixtures, now, {}) if is_whole_round(u)), None)
+    if round_df is None:
+        raise SystemExit("REFUSING TO SIMULATE: no upcoming round.")
+    matchday = int(round_df["matchday"].iloc[0])
+    first_kickoff = round_df["kickoff_utc"].min()
 
     path = FORECASTS_DIR / season / f"table-round-{matchday:02d}.csv"
     if path.exists():
         raise FileExistsError(f"{path} already exists. Snapshots are never overwritten.")
+    if round_started(fixtures, matchday, now):
+        raise SystemExit(
+            f"REFUSING TO SIMULATE: round {matchday} has already kicked off, "
+            "or its fixture list is incomplete."
+        )
 
     # Same cutoff as the round's match forecasts.
     train = ingest.get_training_data(history, first_kickoff)
     table = current_table(train[train["season"] == season])
+    # Every unplayed fixture, including postponed ones with no date.
     remaining = pd.concat([fixtures["home"], fixtures["away"]]).value_counts()
     total = table["played"].add(remaining, fill_value=0)
     if len(total) != TEAMS_PER_SEASON or (total != MATCHES_PER_TEAM).any():

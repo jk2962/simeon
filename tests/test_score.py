@@ -39,6 +39,7 @@ def make_forecasts(rows):
             "p_home": 0.5,
             "p_draw": 0.3,
             "p_away": 0.2,
+            "generated_at_utc": "2026-10-09T12:00:00Z",
         }
     )
 
@@ -86,3 +87,29 @@ def test_unplayed_and_postponed_matches_are_not_scored():
     for row in (scored.iloc[2], scored.iloc[3]):
         assert pd.isna(row["home_goals"]) and pd.isna(row["outcome"])
         assert np.isnan(row["rps_model"]) and np.isnan(row["rps_naive"]) and np.isnan(row["rps_bookmaker"])
+
+
+def test_forecast_locked_at_or_after_kickoff_is_an_error():
+    late = FORECASTS.copy()
+    late["generated_at_utc"] = "2026-10-10T14:00:00Z"  # exactly at A v C's kickoff
+    with pytest.raises(ValueError, match="locked at or after kickoff"):
+        score_forecasts(late, HISTORY)
+
+
+def test_lock_time_is_compared_with_the_kickoff_actually_played():
+    # C v B was forecast for 20:00 on the 10th but played at 12:00 on the 11th.
+    # A lock between A v C's kickoff and that one is late for A v C only.
+    late = FORECASTS.iloc[[1]].assign(generated_at_utc="2026-10-10T15:00:00Z")
+    assert score_forecasts(late, HISTORY)["outcome"].tolist() == ["D"]
+
+
+def test_rescheduled_match_is_scored_on_its_second_forecast_only():
+    again = make_forecasts([("2026-12-01 20:00", "D", "A")]).assign(
+        generated_at_utc="2026-11-30T12:00:00Z"
+    )
+    scored = score_forecasts(pd.concat([FORECASTS, again], ignore_index=True), HISTORY)
+    assert np.isnan(scored.iloc[3]["rps_model"])  # locked for 11 October, not played then
+    assert scored.iloc[4]["outcome"] == "A"
+    # Naive is fitted on everything before this lock's kickoff: 2 home wins,
+    # 2 draws, so (0.5, 0.5, 0) against an away win.
+    assert scored.iloc[4]["rps_naive"] == pytest.approx((0.5**2 + 1.0**2) / 2)

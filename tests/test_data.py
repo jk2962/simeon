@@ -154,3 +154,68 @@ def test_bookmaker_probs_missing_odds_raise():
     row = {"home": "A", "away": "B", "odds_home": 2.0, "odds_draw": np.nan, "odds_away": 4.0}
     with pytest.raises(ValueError):
         baselines.bookmaker_probs(row)
+
+
+# ---- ingest: the UK clock change on 2026-10-25 ----
+
+def test_kickoffs_around_the_2026_clock_change_are_utc():
+    raw = pd.DataFrame(
+        [
+            raw_row("23/10/2026", "20:00"),  # Friday, BST: UTC+1
+            raw_row("24/10/2026", "15:00"),  # Saturday, last day of BST
+            raw_row("25/10/2026", "14:00"),  # Sunday, clocks went back at 02:00: GMT
+            raw_row("25/10/2026", "16:30"),
+        ]
+    )
+    kickoffs = ingest.standardize_season(raw, "2627")["kickoff_utc"]
+    # The same times the fixtures API gives for round 8, which is already UTC.
+    api = ["2026-10-23T19:00:00Z", "2026-10-24T14:00:00Z", "2026-10-25T14:00:00Z", "2026-10-25T16:30:00Z"]
+    assert list(kickoffs) == list(pd.to_datetime(api, utc=True))
+    # Saturday 15:00 to Sunday 14:00 is 23 hours on the UK clock, 24 in UTC.
+    assert kickoffs[2] - kickoffs[1] == pd.Timedelta(hours=24)
+    assert str(kickoffs.dt.tz) == "UTC"
+
+
+def test_time_in_the_repeated_hour_is_refused_not_guessed():
+    raw = pd.DataFrame([raw_row("25/10/2026", "01:30")])  # happens twice that night
+    with pytest.raises(Exception, match="(?i)ambiguous"):
+        ingest.standardize_season(raw, "2627")
+
+
+# ---- ingest: postponed fixtures ----
+
+def api_match(match_id, status, utc_date, home, away, matchday=7):
+    return {
+        "id": match_id,
+        "status": status,
+        "matchday": matchday,
+        "utcDate": utc_date,
+        "homeTeam": {"name": home},
+        "awayTeam": {"name": away},
+    }
+
+
+def test_postponed_fixture_is_kept_with_no_kickoff(monkeypatch):
+    names = pd.read_csv(ingest.TEAMS_CSV)["fd_org_name"].tolist()
+    matches = [
+        api_match(1, "FINISHED", "2026-10-10T14:00:00Z", names[0], names[1], matchday=6),
+        api_match(2, "POSTPONED", "2026-10-17T14:00:00Z", names[2], names[3]),
+        api_match(3, "TIMED", "2026-10-17T14:00:00Z", names[4], names[5]),
+    ]
+
+    class Response:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"matches": matches}
+
+    monkeypatch.setenv("FOOTBALL_DATA_API_KEY", "test")
+    monkeypatch.setattr(ingest.requests, "get", lambda *args, **kwargs: Response())
+    fixtures = ingest.load_fixtures()
+
+    # Still counted as a match to play, so every team keeps its 38.
+    assert fixtures["match_id"].tolist() == [3, 2]
+    assert pd.isna(fixtures["kickoff_utc"].iloc[1])
+    assert str(fixtures["kickoff_utc"].dt.tz) == "UTC"
+    assert pd.concat([fixtures["home"], fixtures["away"]]).value_counts().eq(1).all()

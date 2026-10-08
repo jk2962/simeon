@@ -175,12 +175,87 @@ def git(*args):
     return result.stdout.strip()
 
 
+def locked_kickoffs(season):
+    """(home, away) -> kickoff times of the forecasts already locked for that pair."""
+    slots = {}
+    for path in sorted((FORECASTS_DIR / season).glob("round-*.csv")):
+        for row in pd.read_csv(path).itertuples():
+            slots.setdefault((row.home, row.away), []).append(pd.Timestamp(row.kickoff_utc))
+    return slots
+
+
+def lock_units(fixtures, now, slots):
+    """Split the upcoming fixtures into the groups that are locked together.
+
+    A group is the fixtures of one matchday that fall in the same matchweek
+    (see walk_forward_blocks). A match rescheduled out of its round lands in
+    another week, so it forms a group of its own and keeps its original
+    matchday. A postponed match with no date is in no group. Matches that
+    have kicked off are in no group either, so what is left of a round that
+    was never locked is still a group. Groups are returned earliest first
+    kickoff first.
+
+    slots: locked_kickoffs(). A fixture is skipped if a forecast is already
+    locked for it within RESCHEDULE_TOLERANCE of its current kickoff, the same
+    rule score_forecasts uses. A forecast locked for a date the match has
+    since moved away from does not count, so that match is locked again.
+    Pass {} to ignore locks.
+    """
+    covered = [
+        any(abs(f.kickoff_utc - k) <= RESCHEDULE_TOLERANCE for k in slots.get((f.home, f.away), []))
+        for f in fixtures.itertuples()
+    ]
+    upcoming = fixtures[(fixtures["kickoff_utc"] > now) & ~np.array(covered, dtype=bool)]
+    units = [
+        block
+        for _, matchday_df in upcoming.groupby("matchday")
+        for block in walk_forward_blocks(matchday_df)
+    ]
+    return sorted(units, key=lambda unit: unit["kickoff_utc"].min())
+
+
+def is_whole_round(unit):
+    """True if the group is the round itself, not matches rescheduled out of it."""
+    return len(unit) > MATCHES_PER_ROUND / 2
+
+
+def round_started(fixtures, matchday, now):
+    """True unless all ten fixtures of the round are still to be played.
+
+    Postponed fixtures count: they are still listed. A match that has kicked
+    off is not (the API drops it, the manual file shows a past kickoff).
+    """
+    listed = fixtures[fixtures["matchday"] == matchday]
+    return len(listed) != MATCHES_PER_ROUND or bool((listed["kickoff_utc"] <= now).any())
+
+
+def lock_reason(unit, fixtures, now, round_locked):
+    """Why a lock is partial, or None for a complete round locked before its first kickoff.
+
+    round_locked: whether round-NN.csv exists for the unit's matchday.
+    "missed-lock": the round's first kickoff passed with no round-NN.csv, so
+    these are the matches of it still to be played.
+    "rescheduled": the fixture was moved out of its round, before or after
+    the round was locked.
+    """
+    started = round_started(fixtures, int(unit["matchday"].iloc[0]), now)
+    if is_whole_round(unit) and not round_locked and not started:
+        return None
+    return "missed-lock" if started and not round_locked else "rescheduled"
+
+
 def forecast():
     """Forecast the next round and write it to forecasts/<season>/round-NN.csv.
 
     The file is the locked record, so this refuses to run when the result
-    could not be trusted or reproduced: uncommitted code, a round that has
-    already started, or a forecast file that already exists.
+    could not be trusted or reproduced: uncommitted code, or a forecast file
+    that already exists.
+
+    round-NN.csv is only ever a complete round locked before its first
+    kickoff (less any match postponed out of it). Every other lock goes to
+    round-NN-partial-<date>.csv, under the original matchday and with a
+    lock_reason column (see lock_reason). Each match in it is still locked
+    before its own kickoff.
     """
     # The file records the commit that produced it. That is only true if the
     # code on disk is exactly that commit.
@@ -194,18 +269,20 @@ def forecast():
     fixtures = ingest.load_fixtures()
     fixtures_source = fixtures.attrs["source"]
 
-    # The round to forecast is the matchday of the next fixture to kick off.
+    # Forecast the next group of fixtures to kick off with no locked forecast.
     now = pd.Timestamp.now(tz="UTC")
-    upcoming = fixtures[fixtures["kickoff_utc"] > now]
-    if len(upcoming) == 0:
-        raise SystemExit("REFUSING TO FORECAST: no upcoming fixtures.")
-    matchday = int(upcoming["matchday"].iloc[0])
-    round_df = fixtures[fixtures["matchday"] == matchday]
+    units = lock_units(fixtures, now, locked_kickoffs(season))
+    if not units:
+        raise SystemExit("REFUSING TO FORECAST: no upcoming fixtures without a locked forecast.")
+    round_df = units[0]
+    matchday = int(round_df["matchday"].iloc[0])
     first_kickoff = round_df["kickoff_utc"].min()
-    if now >= first_kickoff:
-        raise SystemExit(f"REFUSING TO FORECAST: round {matchday} has already kicked off.")
+    left_out = fixtures[fixtures["matchday"] == matchday].drop(round_df.index)
 
     path = FORECASTS_DIR / season / f"round-{matchday:02d}.csv"
+    reason = lock_reason(round_df, fixtures, now, path.exists())
+    if reason:
+        path = path.with_name(f"round-{matchday:02d}-partial-{first_kickoff:%Y-%m-%d}.csv")
     if path.exists():
         raise FileExistsError(f"{path} already exists. Forecasts are never overwritten.")
 
@@ -233,10 +310,10 @@ def forecast():
             }
         )
     forecasts = pd.DataFrame(rows)
+    if reason:
+        forecasts["lock_reason"] = reason
 
     # Validate before anything is written.
-    if len(forecasts) != MATCHES_PER_ROUND:
-        raise ValueError(f"Round {matchday}: expected {MATCHES_PER_ROUND} fixtures, found {len(forecasts)}")
     totals = forecasts[["p_home", "p_draw", "p_away"]].sum(axis=1)
     if ((totals - 1.0).abs() > 1e-9).any():
         raise ValueError("Forecast probabilities do not sum to 1")
@@ -248,7 +325,7 @@ def forecast():
     path.parent.mkdir(parents=True, exist_ok=True)
     forecasts.to_csv(path, index=False, mode="x")  # "x": fail if the file exists
 
-    print(f"\n== Forecasts: {season} round {matchday} ==")
+    print(f"\n== Forecasts: {season} round {matchday}{f' (partial: {reason})' if reason else ''} ==")
     print(f"Model version {model_version} | PRIOR_STRENGTH {model.PRIOR_STRENGTH} | fixtures from {fixtures_source}")
     print(f"Generated {now.strftime(UTC_FORMAT)} | data through {train['kickoff_utc'].max().strftime(UTC_FORMAT)}")
     print(f"First kickoff {first_kickoff.strftime(UTC_FORMAT)}\n")
@@ -260,6 +337,9 @@ def forecast():
             f"{row.p_home:>6.1%}{row.p_draw:>6.1%}{row.p_away:>6.1%}"
             f"   {row.exp_home_goals:.2f} - {row.exp_away_goals:.2f}"
         )
+    for f in left_out.itertuples():
+        when = "postponed, no date" if pd.isna(f.kickoff_utc) else f.kickoff_utc.strftime(UTC_FORMAT)
+        print(f"Not in this lock: {f.home} v {f.away} ({when})")
     print(f"\nWritten to {path}")
 
 
@@ -271,7 +351,12 @@ def score_forecasts(forecasts, history):
     and RPS columns are blank until the match is played.
 
     The two sources share no match id, so the join is on season, home and
-    away, which is unique: each pair meets once per season at each ground.
+    away: each pair meets once per season at each ground. A pair can have two
+    forecasts (one locked before a postponement, one after the match was
+    rescheduled). Only the one made for the date actually played is scored.
+
+    Raises ValueError if a forecast to be scored was not locked before its
+    match kicked off.
     """
     result_cols = ["home_goals", "away_goals", *ingest.ODDS_COLS, "odds_source"]
     results = history[["season", "home", "away", "kickoff_utc", *result_cols]]
@@ -279,12 +364,21 @@ def score_forecasts(forecasts, history):
         results.rename(columns={"kickoff_utc": "played_utc"}),
         on=["season", "home", "away"],
         how="left",
-        validate="1:1",
+        validate="m:1",
     )
     # A match played on another date was postponed after the forecast was
     # locked. That forecast was made for a different day, so it is not scored.
     played = (merged["played_utc"] - merged["kickoff_utc"]).abs() <= RESCHEDULE_TOLERANCE
     merged.loc[~played, result_cols] = pd.NA
+
+    # A forecast only counts if it was locked before the match kicked off.
+    locked_utc = pd.to_datetime(merged["generated_at_utc"], utc=True)
+    late = merged[played & (locked_utc >= merged["played_utc"])]
+    if len(late) > 0:
+        raise ValueError(
+            "Forecast(s) locked at or after kickoff:\n"
+            + late[["season", "home", "away", "generated_at_utc", "played_utc"]].to_string(index=False)
+        )
 
     merged["outcome"] = None
     merged.loc[played, "outcome"] = scoring.match_outcomes(merged[played])
@@ -294,8 +388,8 @@ def score_forecasts(forecasts, history):
     )
 
     # The naive baseline gets the same information as the model: matches
-    # before the round's first kickoff.
-    for _, round_df in merged.groupby(["season", "matchday"]):
+    # before the first kickoff of the lock (one generated_at_utc per lock).
+    for _, round_df in merged.groupby(["season", "matchday", "generated_at_utc"]):
         done = round_df[played[round_df.index]]
         train = ingest.get_training_data(history, round_df["kickoff_utc"].min())
         naive = np.tile(baselines.naive_probs(train), (len(done), 1))

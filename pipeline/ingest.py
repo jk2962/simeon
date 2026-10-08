@@ -175,7 +175,11 @@ def load_env_file():
 
 
 def load_fixtures():
-    """Upcoming fixtures: match_id, matchday, kickoff_utc, home, away.
+    """Unplayed fixtures: match_id, matchday, kickoff_utc, home, away.
+
+    kickoff_utc is always UTC. It is blank (NaT) for a postponed match with no
+    new date: that match will still be played, so the season simulation needs
+    it, but no forecast can be locked for it until it is rescheduled.
 
     Uses the football-data.org API. If the token is missing or the call fails,
     falls back to data/manual_fixtures.csv with a loud warning.
@@ -193,12 +197,17 @@ def load_fixtures():
         # Only the error type is printed: the token must never reach the output.
         return _manual_fixtures(f"football-data.org call failed ({type(error).__name__})")
 
-    upcoming = [m for m in matches if m["status"] in ("SCHEDULED", "TIMED")]
+    # A POSTPONED match still carries its old date in the API, so that date
+    # is dropped. Once rescheduled it comes back as SCHEDULED or TIMED with
+    # the new date and its original matchday.
+    upcoming = [m for m in matches if m["status"] in ("SCHEDULED", "TIMED", "POSTPONED")]
     fixtures = pd.DataFrame(
         {
             "match_id": [m["id"] for m in upcoming],
             "matchday": [m["matchday"] for m in upcoming],
-            "kickoff_utc": pd.to_datetime([m["utcDate"] for m in upcoming], utc=True),
+            "kickoff_utc": pd.to_datetime(
+                [None if m["status"] == "POSTPONED" else m["utcDate"] for m in upcoming], utc=True
+            ),
             "home": [m["homeTeam"]["name"] for m in upcoming],
             "away": [m["awayTeam"]["name"] for m in upcoming],
         }
@@ -219,11 +228,12 @@ def _manual_fixtures(reason):
     expected = ["match_id", "matchday", "kickoff_utc", "home", "away"]
     if list(fixtures.columns) != expected:
         raise ValueError(f"{MANUAL_FIXTURES_CSV} must have columns {expected}")
-    if fixtures.isna().any().any():
+    # Only kickoff_utc may be blank: a postponed match with no new date.
+    if fixtures.drop(columns="kickoff_utc").isna().any().any():
         raise ValueError(f"{MANUAL_FIXTURES_CSV} has blank cells")
     # Kickoff times must be written with an explicit UTC marker, e.g.
     # 2026-10-10T11:30:00Z, so a local time cannot be mistaken for UTC.
-    if not fixtures["kickoff_utc"].astype(str).str.endswith("Z").all():
+    if not fixtures["kickoff_utc"].dropna().astype(str).str.endswith("Z").all():
         raise ValueError(f"{MANUAL_FIXTURES_CSV}: every kickoff_utc must end in 'Z'")
     fixtures["kickoff_utc"] = pd.to_datetime(fixtures["kickoff_utc"], utc=True)
     fixtures["home"] = canonical_names(fixtures["home"], "canonical")
