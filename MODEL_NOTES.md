@@ -109,8 +109,9 @@ Refitting the parameters on new results is not a model change: it happens
 every week.
 
 **1. Checkpoints.** A model change may only be considered after rounds 10, 20
-and 30 of a season: once every match of that round has been scored, and
-before the next round is locked. Between checkpoints the model is frozen. At
+and 30 of a season, and before the next round is locked: once the round's
+originally scheduled match dates have passed; postponed matches do not delay
+the checkpoint. Between checkpoints the model is frozen. At
 most 2 candidates are considered per checkpoint, and they are named in the
 decision log before any backtest is run. An adopted change applies from the
 next locked round onward. Forecasts already locked are never regenerated.
@@ -141,7 +142,9 @@ Threshold. A candidate is adopted only if all four hold:
   one bootstrap standard error, taken from resampling the 760 comparison
   matches with replacement and recomputing the difference in calibration
   error (candidate minus current) on each resample. The absolute gap between
-  predicted and observed draw rate may not grow.
+  predicted and observed draw rate may not grow by more than one bootstrap
+  standard error of the paired difference, computed the same way as for
+  calibration error.
 
 By this rule the PRIOR_STRENGTH = 30 candidate of 2026-10-07 (1.3 standard
 errors) would not have been adopted.
@@ -185,6 +188,12 @@ model change.
      promoted team at all (-0.0007, 0.7 standard errors). How much to
      compress established teams is a separate modeling choice, to be
      evaluated later on more seasons.
+- **2026-10-08: Model change policy amended twice, before any locked
+  forecast was scored.** The draw-rate condition now allows growth of up to
+  one bootstrap standard error of the paired difference (it was "may not
+  grow"), and a checkpoint now opens once the round's originally scheduled
+  match dates have passed, without waiting for postponed matches (it was
+  "once every match of that round has been scored").
 
 ## Known divergences from the market reference
 
