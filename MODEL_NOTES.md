@@ -97,6 +97,78 @@ weights (as in Dixon-Coles) add a tuning parameter, and a tuned parameter
 needs a backtest to justify it. The hard window is the simple version of the
 same idea. I would add decay if the backtest shows it lowers RPS.
 
+## Model change policy
+
+Pre-registered on 2026-10-08, before round 6 of 2026-27 (first kickoff
+2026-10-10 11:30 UTC), the first round with a locked forecast. Rounds 1 to 5
+were never locked.
+
+A "model change" is any change to the formula, to PRIOR_STRENGTH, to the
+training window, to the promoted-team prior, or to how matches are weighted.
+Refitting the parameters on new results is not a model change: it happens
+every week.
+
+**1. Checkpoints.** A model change may only be considered after rounds 10, 20
+and 30 of a season: once every match of that round has been scored, and
+before the next round is locked. Between checkpoints the model is frozen. At
+most 2 candidates are considered per checkpoint, and they are named in the
+decision log before any backtest is run. An adopted change applies from the
+next locked round onward. Forecasts already locked are never regenerated.
+
+**2. Evidence required.** A candidate must beat the current model on a
+walk-forward backtest over past seasons, scored by RPS, and must not worsen
+calibration. The repo holds six completed seasons, 2020-21 to 2025-26. As in
+`pipeline.tune`, candidates are compared on 2023-24 and 2024-25 (760
+matches), earlier seasons are training data only, and 2025-26 is the holdout.
+Locked 2026-27 forecasts are not backtest evidence: they may suggest which
+candidate to test, but they cannot justify adopting it. Checkpoints control
+when new ideas may be acted on; they add no new evidence, since 2026-27
+forecasts are excluded.
+
+Threshold. A candidate is adopted only if all four hold:
+
+- Mean RPS over the 760 comparison matches is lower than the current model's
+  by at least 2 standard errors of the paired per-match difference.
+- RPS is lower in 2023-24 and in 2024-25 separately.
+- On the 2025-26 holdout, RPS is not higher than the current model's. The
+  holdout may be used only for candidates that pass the first two
+  conditions, and once per candidate. Every use is logged, because each one
+  makes the holdout a little less clean.
+- Calibration is not worse on the comparison seasons. Calibration error is
+  measured over ten equal-width probability bins with home, draw and away
+  forecasts pooled: the mean absolute gap between predicted probability and
+  observed frequency, weighted by bin count. It may not rise by more than
+  one bootstrap standard error, taken from resampling the 760 comparison
+  matches with replacement and recomputing the difference in calibration
+  error (candidate minus current) on each resample. The absolute gap between
+  predicted and observed draw rate may not grow.
+
+By this rule the PRIOR_STRENGTH = 30 candidate of 2026-10-07 (1.3 standard
+errors) would not have been adopted.
+
+**3. Weekly diagnostics.** Reported after every round, on locked forecasts
+only: cumulative RPS against the bookmaker, calibration by probability bin,
+and predicted against observed draw rate. No action is taken on them between
+checkpoints. `python -m pipeline.run --score` produces the first; the other
+two are not built yet.
+
+**4. One-off events.** A lucky win, an off day, an injury or an early red
+card is handled only by a rule that is defined in advance, tested by backtest
+under point 2, and adopted at a checkpoint. An example is a downweight for
+matches with a red card, using the red-card columns (`HR`, `AR`) already in
+the results files. No result is ever dropped or downweighted by judgment.
+
+**5. Logging.** Every checkpoint gets an entry in the decision log below,
+with the date, the candidates considered, the evidence (the numbers) and the
+outcome. "No change" and rejected candidates are logged too.
+
+**6. Bug fixes.** A bug is code that does not do what MODEL_NOTES.md already
+stated before the bug was found. A fix is not a model change and does not
+wait for a checkpoint, but it may only restore the documented behavior. It
+applies from the next locked round, is logged in the decision log, and never
+regenerates locked forecasts. Anything that changes documented behavior is a
+model change.
+
 ## Decision log
 
 - **2026-10-07: PRIOR_STRENGTH kept at 3; a pre-stated rule was deliberately
