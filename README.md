@@ -17,6 +17,8 @@ export FOOTBALL_DATA_API_KEY=...   # football-data.org token; never commit it
 ```
 .venv/bin/pytest
 .venv/bin/python -m pipeline.run --check
+.venv/bin/python -m pipeline.run --forecast   # lock the next round; needs a clean working tree
+.venv/bin/python -m pipeline.run --score      # score locked forecasts, rewrite forecasts/scores.csv
 ```
 
 Without the token, fixtures come from `data/manual_fixtures.csv`

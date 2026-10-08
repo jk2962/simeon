@@ -19,6 +19,12 @@ FORECASTS_DIR = ingest.REPO / "forecasts"
 MATCHES_PER_ROUND = 10
 UTC_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
+PROB_COLS = ["p_home", "p_draw", "p_away"]
+BOOK_COLS = ["book_home", "book_draw", "book_away"]
+# A kickoff moved by up to a day (Saturday to Sunday for television) is still
+# the match that was forecast. Anything further is a postponement.
+RESCHEDULE_TOLERANCE = pd.Timedelta(days=1)
+
 
 def walk_forward_blocks(season_df):
     """Group a season's matches into matchweeks for walk-forward refitting.
@@ -257,11 +263,97 @@ def forecast():
     print(f"\nWritten to {path}")
 
 
+def score_forecasts(forecasts, history):
+    """Join locked forecasts to results and score them. No files, no network.
+
+    `forecasts` holds the rows of the round files plus a `season` column, with
+    kickoff_utc parsed. Returns one row per forecast: the result, bookmaker
+    and RPS columns are blank until the match is played.
+
+    The two sources share no match id, so the join is on season, home and
+    away, which is unique: each pair meets once per season at each ground.
+    """
+    result_cols = ["home_goals", "away_goals", *ingest.ODDS_COLS, "odds_source"]
+    results = history[["season", "home", "away", "kickoff_utc", *result_cols]]
+    merged = forecasts.merge(
+        results.rename(columns={"kickoff_utc": "played_utc"}),
+        on=["season", "home", "away"],
+        how="left",
+        validate="1:1",
+    )
+    # A match played on another date was postponed after the forecast was
+    # locked. That forecast was made for a different day, so it is not scored.
+    played = (merged["played_utc"] - merged["kickoff_utc"]).abs() <= RESCHEDULE_TOLERANCE
+    merged.loc[~played, result_cols] = pd.NA
+
+    merged["outcome"] = None
+    merged.loc[played, "outcome"] = scoring.match_outcomes(merged[played])
+    merged[[*BOOK_COLS, "rps_model", "rps_naive", "rps_bookmaker"]] = np.nan
+    merged.loc[played, "rps_model"] = scoring.rps_many(
+        merged.loc[played, PROB_COLS], merged.loc[played, "outcome"]
+    )
+
+    # The naive baseline gets the same information as the model: matches
+    # before the round's first kickoff.
+    for _, round_df in merged.groupby(["season", "matchday"]):
+        done = round_df[played[round_df.index]]
+        train = ingest.get_training_data(history, round_df["kickoff_utc"].min())
+        naive = np.tile(baselines.naive_probs(train), (len(done), 1))
+        merged.loc[done.index, "rps_naive"] = scoring.rps_many(naive, done["outcome"])
+
+    has_odds = played & merged[ingest.ODDS_COLS].notna().all(axis=1)
+    book = np.array(
+        [baselines.bookmaker_probs(row) for _, row in merged[has_odds].iterrows()]
+    ).reshape(-1, 3)
+    merged.loc[has_odds, BOOK_COLS] = book
+    merged.loc[has_odds, "rps_bookmaker"] = scoring.rps_many(book, merged.loc[has_odds, "outcome"])
+
+    return merged.drop(columns=["played_utc", *ingest.ODDS_COLS])
+
+
+def score():
+    """Score every locked forecast against results and write forecasts/scores.csv.
+
+    Unlike the round files, scores.csv is derived and is rewritten on every
+    run. The round files are only read.
+    """
+    history = ingest.load_history()
+    validate.validate_history(history, ingest.season_label(ingest.CURRENT_SEASON))
+
+    paths = sorted(FORECASTS_DIR.glob("*/round-*.csv"))
+    if not paths:
+        raise SystemExit("NOTHING TO SCORE: no forecast files.")
+    forecasts = pd.concat(
+        [pd.read_csv(p).assign(season=p.parent.name) for p in paths], ignore_index=True
+    )
+    forecasts["kickoff_utc"] = pd.to_datetime(forecasts["kickoff_utc"], utc=True)
+    scored = score_forecasts(forecasts, history)
+
+    path = FORECASTS_DIR / "scores.csv"
+    scored.to_csv(path, index=False, date_format=UTC_FORMAT)
+
+    played = scored[scored["rps_model"].notna()]
+    print(f"\n== Locked forecasts: {len(scored)} | scored: {len(played)} | pending: {len(scored) - len(played)} ==")
+    overdue = scored["rps_model"].isna() & (
+        scored["kickoff_utc"] < pd.Timestamp.now(tz="UTC") - RESCHEDULE_TOLERANCE
+    )
+    if overdue.any():
+        print(f"{overdue.sum()} forecast(s) past kickoff with no result yet (results file lag, or postponed).")
+    # All three are compared on the same matches: those with bookmaker odds.
+    same = played[played["rps_bookmaker"].notna()]
+    if len(same):
+        print(f"\nMean RPS on the same {len(same)} matches (lower is better)")
+        for name in ["model", "naive", "bookmaker"]:
+            print(f"  {name:<10} {same[f'rps_{name}'].mean():.4f}")
+    print(f"\nWritten to {path}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="simeon pipeline")
     parser.add_argument("--check", action="store_true", help="load, validate and report")
     parser.add_argument("--backtest", action="store_true", help="holdout sanity check on 2025-26")
     parser.add_argument("--forecast", action="store_true", help="forecast and lock the next round")
+    parser.add_argument("--score", action="store_true", help="score locked forecasts against results")
     args = parser.parse_args()
     if args.check:
         check()
@@ -269,5 +361,7 @@ if __name__ == "__main__":
         backtest()
     elif args.forecast:
         forecast()
+    elif args.score:
+        score()
     else:
         parser.print_help()
