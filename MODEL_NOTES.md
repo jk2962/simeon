@@ -104,9 +104,10 @@ Pre-registered on 2026-10-08, before round 6 of 2026-27 (first kickoff
 were never locked.
 
 A "model change" is any change to the formula, to PRIOR_STRENGTH, to the
-training window, to the promoted-team prior, or to how matches are weighted.
-Refitting the parameters on new results is not a model change: it happens
-every week.
+training window, to the promoted-team prior, to how matches are weighted, or
+to the season simulation's method and uncertainty settings, including how
+prior variance is derived. Refitting the parameters on new results is not a
+model change: it happens every week.
 
 **1. Checkpoints.** A model change may only be considered after rounds 10, 20
 and 30 of a season, and before the next round is locked: once the round's
@@ -194,6 +195,15 @@ model change.
   grow"), and a checkpoint now opens once the round's originally scheduled
   match dates have passed, without waiting for postponed matches (it was
   "once every match of that round has been scored").
+- **2026-10-08: Round-6 season snapshot gives Hull a 2.8% title probability;
+  a round-10 candidate is named.** With fixed parameters the figure is 0.02%.
+  The cause: the Laplace draws treat PRIOR_STRENGTH = 3, which was chosen for
+  numerical stability, as a literal prior, and for a promoted team with 5
+  matches that prior is very wide. Named candidate for the round-10
+  checkpoint: a simulation prior variance separate from PRIOR_STRENGTH,
+  evaluated by backtesting season simulations from round 6 of 2023-24 and
+  2024-25 against final positions (RPS over positions). Locked snapshots are
+  not regenerated.
 
 ## Known divergences from the market reference
 
