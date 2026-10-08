@@ -44,6 +44,7 @@ export function MatchCard({ match, weekLockedAt, now }: { match: Match; weekLock
   const forecast = OUTCOMES.map((o) => `${name[o]} ${percent(model[o])}`);
   const inTime = lockedInTime(match);
   const note = lockNote(match, weekLockedAt);
+  const likely = match.prediction.likelyScore;
 
   return (
     <article aria-label={`${getTeam(home).name} v ${getTeam(away).name}`} className="border border-rule bg-surface p-4">
@@ -53,17 +54,30 @@ export function MatchCard({ match, weekLockedAt, now }: { match: Match; weekLock
 
       <div className="mt-2 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
         <Side code={home} />
-        {result ? (
-          <p className="text-2xl font-bold" aria-label={`${result.home} to ${result.away}`}>
-            {result.home} – {result.away}
+        {/* The actual score. Blank until the match is played, never 0 – 0. */}
+        <div className="text-center">
+          {result ? (
+            <p className="text-2xl font-bold" aria-label={`${result.home} to ${result.away}`}>
+              {result.home} – {result.away}
+            </p>
+          ) : (
+            <p className="text-2xl font-bold text-muted" aria-label="No score yet">
+              – : –
+            </p>
+          )}
+          <p className="text-xs text-muted">
+            {result ? "Full time" : Date.parse(match.kickoff) <= now ? "Result pending" : "Not played yet"}
           </p>
-        ) : Date.parse(match.kickoff) <= now ? (
-          <p className="text-sm text-muted">Result pending</p>
-        ) : (
-          <p className="text-muted">vs</p>
-        )}
+        </div>
         <Side code={away} end />
       </div>
+      <p className="mt-2 text-center text-sm text-muted">
+        Most likely score before kickoff{" "}
+        <span className="font-semibold text-ink">
+          {likely.home} – {likely.away}
+        </span>{" "}
+        ({percent(likely.probability)})
+      </p>
 
       {/* Widths are the three probabilities. The gap keeps two teams of one color apart. */}
       <div role="img" aria-label={`Model: ${forecast.join(", ")}`} className="mt-4 flex h-3 gap-[2px]">

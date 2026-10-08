@@ -12,6 +12,11 @@
         "home": 1.45,
         "away": 1.24
       },
+      "likelyScore": {
+        "home": 1,
+        "away": 1,
+        "probability": 0.122
+      },
       "analysis": null,
       "lockedAt": "2026-10-16T08:17:52Z",
       "lockReason": null
@@ -43,6 +48,11 @@
       "expectedGoals": {
         "home": 1.55,
         "away": 1.16
+      },
+      "likelyScore": {
+        "home": 1,
+        "away": 1,
+        "probability": 0.1196
       },
       "analysis": null,
       "lockedAt": "2026-10-16T08:17:52Z",
@@ -76,6 +86,11 @@
         "home": 2.86,
         "away": 0.63
       },
+      "likelyScore": {
+        "home": 2,
+        "away": 0,
+        "probability": 0.1248
+      },
       "analysis": null,
       "lockedAt": "2026-10-16T08:17:52Z",
       "lockReason": null
@@ -107,6 +122,11 @@
       "expectedGoals": {
         "home": 1.29,
         "away": 1.39
+      },
+      "likelyScore": {
+        "home": 1,
+        "away": 1,
+        "probability": 0.1228
       },
       "analysis": null,
       "lockedAt": "2026-10-16T08:17:52Z",
@@ -140,6 +160,11 @@
         "home": 1.49,
         "away": 1.2
       },
+      "likelyScore": {
+        "home": 1,
+        "away": 1,
+        "probability": 0.1211
+      },
       "analysis": null,
       "lockedAt": "2026-10-16T08:17:52Z",
       "lockReason": null
@@ -171,6 +196,11 @@
       "expectedGoals": {
         "home": 1.81,
         "away": 1
+      },
+      "likelyScore": {
+        "home": 1,
+        "away": 0,
+        "probability": 0.1095
       },
       "analysis": null,
       "lockedAt": "2026-10-16T08:17:52Z",
@@ -204,6 +234,11 @@
         "home": 1.35,
         "away": 1.33
       },
+      "likelyScore": {
+        "home": 1,
+        "away": 1,
+        "probability": 0.123
+      },
       "analysis": null,
       "lockedAt": "2026-10-16T08:17:52Z",
       "lockReason": null
@@ -235,6 +270,11 @@
       "expectedGoals": {
         "home": 1.82,
         "away": 0.99
+      },
+      "likelyScore": {
+        "home": 1,
+        "away": 0,
+        "probability": 0.1097
       },
       "analysis": null,
       "lockedAt": "2026-10-16T08:17:52Z",
@@ -268,6 +308,11 @@
         "home": 1.1,
         "away": 1.64
       },
+      "likelyScore": {
+        "home": 1,
+        "away": 1,
+        "probability": 0.1166
+      },
       "analysis": "Arsenal are favoured away from home. Forest's rating has barely moved since the start of the season.",
       "lockedAt": "2026-10-16T08:17:52Z",
       "lockReason": null
@@ -299,6 +344,11 @@
       "expectedGoals": {
         "home": 1.98,
         "away": 0.91
+      },
+      "likelyScore": {
+        "home": 1,
+        "away": 0,
+        "probability": 0.1102
       },
       "analysis": null,
       "lockedAt": "2026-10-16T08:17:52Z",

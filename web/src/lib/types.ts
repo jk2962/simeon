@@ -60,6 +60,10 @@ export interface Match {
     draw: number;
     awayWin: number;
     expectedGoals: { home: number; away: number };
+    // The single most likely scoreline and its probability. It follows from
+    // expectedGoals alone, is usually only 8-15% likely, and can disagree
+    // with the most likely outcome.
+    likelyScore: { home: number; away: number; probability: number };
     analysis: string | null; // plain text
     // Per match, not per matchweek: a rescheduled match is locked on its own.
     lockedAt: string; // ISO 8601

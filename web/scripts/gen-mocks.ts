@@ -113,6 +113,20 @@ function outcomeProbs(homeMean: number, awayMean: number): Probs {
   return [home / total, draw / total, 1 - (home + draw) / total];
 }
 
+// The single most likely scoreline on the 0-10 grid, as pipeline/export.py does.
+function likelyScore(homeMean: number, awayMean: number): Match["prediction"]["likelyScore"] {
+  const pmf = (mean: number) => Array.from({ length: 11 }, (_, k) => k).map((k) => {
+    let p = Math.exp(-mean);
+    for (let i = 1; i <= k; i++) p *= mean / i;
+    return p;
+  });
+  const [h, a] = [pmf(homeMean), pmf(awayMean)];
+  const total = h.reduce((x, y) => x + y) * a.reduce((x, y) => x + y);
+  const home = h.indexOf(Math.max(...h));
+  const away = a.indexOf(Math.max(...a));
+  return { home, away, probability: round4((h[home] * a[away]) / total) };
+}
+
 function rps(p: Probs, homeGoals: number, awayGoals: number): number {
   const o = homeGoals > awayGoals ? [1, 0] : homeGoals === awayGoals ? [0, 1] : [0, 0];
   return ((p[0] - o[0]) ** 2 + (p[0] + p[1] - o[0] - o[1]) ** 2) / 2;
@@ -303,6 +317,7 @@ for (const round of ROUNDS) {
         draw: p[1],
         awayWin: p[2],
         expectedGoals: { home: Math.round(homeMean * 100) / 100, away: Math.round(awayMean * 100) / 100 },
+        likelyScore: likelyScore(homeMean, awayMean),
         analysis: ANALYSIS[`${f.home} v ${f.away}`] ?? null,
         lockedAt: round.matchesLockedAt,
         lockReason: null,

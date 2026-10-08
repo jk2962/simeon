@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { io } from "next/cache";
@@ -7,10 +8,21 @@ import type { Match, MatchweekSummary, Snapshot } from "./types";
 // an inline error instead of crashing.
 export type Result<T> = { ok: true; data: T } | { ok: false; error: string };
 
-// Mocks stand in for a missing backend during development only. In
-// production a missing API_BASE_URL is an error, never a silent fallback.
+// Where the data comes from, best first:
+//   api    API_BASE_URL is set: fetched from that backend.
+//   data   data/ exists: the files written by `python -m pipeline.export`.
+//   mocks  development only, when there is no export or USE_MOCKS=1 asks for them.
+//   none   production with neither: an error, never a silent fallback to mocks.
+function source(): "api" | "data" | "mocks" | "none" {
+  if (process.env.API_BASE_URL) return "api";
+  const development = process.env.NODE_ENV !== "production";
+  if (development && process.env.USE_MOCKS === "1") return "mocks";
+  if (existsSync(path.join(process.cwd(), "data", "matchweeks.json"))) return "data";
+  return development ? "mocks" : "none";
+}
+
 export function usingMocks(): boolean {
-  return !process.env.API_BASE_URL && process.env.NODE_ENV !== "production";
+  return source() === "mocks";
 }
 
 // The time of the request. Read here, after io(), so it is never baked into the build.
@@ -23,13 +35,16 @@ async function load<T>(apiPath: string, isValid: (data: unknown) => boolean): Pr
   await io(); // request time only: nothing here is baked into the build
   try {
     let data: unknown;
-    if (usingMocks()) {
-      const file = path.join(process.cwd(), "mocks", `${apiPath.replace("/matchweeks/", "mw-")}.json`);
+    const from = source();
+    if (from === "none") {
+      return { ok: false, error: "There is no data to show: API_BASE_URL is not set and no export was found." };
+    }
+    if (from !== "api") {
+      // The export and the mocks share one file layout.
+      const file = path.join(process.cwd(), from, `${apiPath.replace("/matchweeks/", "mw-")}.json`);
       data = JSON.parse(await readFile(file, "utf8"));
     } else {
-      const base = process.env.API_BASE_URL;
-      if (!base) return { ok: false, error: "API_BASE_URL is not set, so there is no data to show." };
-      const response = await fetch(base.replace(/\/$/, "") + apiPath, { cache: "no-store" });
+      const response = await fetch(process.env.API_BASE_URL!.replace(/\/$/, "") + apiPath, { cache: "no-store" });
       if (!response.ok) return { ok: false, error: `The data service answered with status ${response.status}.` };
       data = await response.json();
     }
@@ -75,6 +90,7 @@ function isMatches(data: unknown): boolean {
         ["id", "kickoff", "home", "away"].every((key) => typeof match[key] === "string") &&
         hasNumbers(prediction, ["homeWin", "draw", "awayWin"]) &&
         hasNumbers(prediction.expectedGoals, ["home", "away"]) &&
+        hasNumbers(prediction.likelyScore, ["home", "away", "probability"]) &&
         (prediction.analysis === null || typeof prediction.analysis === "string") &&
         typeof prediction.lockedAt === "string" &&
         (prediction.lockReason === null || typeof prediction.lockReason === "string") &&

@@ -12,6 +12,11 @@
         "home": 0.92,
         "away": 1.96
       },
+      "likelyScore": {
+        "home": 0,
+        "away": 1,
+        "probability": 0.1102
+      },
       "analysis": null,
       "lockedAt": "2026-10-22T16:17:31Z",
       "lockReason": null
@@ -32,6 +37,11 @@
       "expectedGoals": {
         "home": 1.07,
         "away": 1.69
+      },
+      "likelyScore": {
+        "home": 1,
+        "away": 1,
+        "probability": 0.1145
       },
       "analysis": null,
       "lockedAt": "2026-10-22T16:17:31Z",
@@ -54,6 +64,11 @@
         "home": 2.1,
         "away": 0.86
       },
+      "likelyScore": {
+        "home": 2,
+        "away": 0,
+        "probability": 0.1145
+      },
       "analysis": null,
       "lockedAt": "2026-10-22T16:17:31Z",
       "lockReason": null
@@ -74,6 +89,11 @@
       "expectedGoals": {
         "home": 1.06,
         "away": 1.7
+      },
+      "likelyScore": {
+        "home": 1,
+        "away": 1,
+        "probability": 0.1139
       },
       "analysis": null,
       "lockedAt": "2026-10-22T16:17:31Z",
@@ -96,6 +116,11 @@
         "home": 1.82,
         "away": 0.99
       },
+      "likelyScore": {
+        "home": 1,
+        "away": 0,
+        "probability": 0.1097
+      },
       "analysis": "Tottenham's poor start pulled their rating down sharply. Home advantage does most of the remaining work here.",
       "lockedAt": "2026-10-22T16:17:31Z",
       "lockReason": null
@@ -116,6 +141,11 @@
       "expectedGoals": {
         "home": 1.73,
         "away": 1.04
+      },
+      "likelyScore": {
+        "home": 1,
+        "away": 1,
+        "probability": 0.1129
       },
       "analysis": null,
       "lockedAt": "2026-10-22T16:17:31Z",
@@ -138,6 +168,11 @@
         "home": 1.32,
         "away": 1.36
       },
+      "likelyScore": {
+        "home": 1,
+        "away": 1,
+        "probability": 0.123
+      },
       "analysis": null,
       "lockedAt": "2026-10-22T16:17:31Z",
       "lockReason": null
@@ -158,6 +193,11 @@
       "expectedGoals": {
         "home": 1.58,
         "away": 1.14
+      },
+      "likelyScore": {
+        "home": 1,
+        "away": 1,
+        "probability": 0.1186
       },
       "analysis": null,
       "lockedAt": "2026-10-22T16:17:31Z",
@@ -180,6 +220,11 @@
         "home": 1.33,
         "away": 1.35
       },
+      "likelyScore": {
+        "home": 1,
+        "away": 1,
+        "probability": 0.123
+      },
       "analysis": null,
       "lockedAt": "2026-10-22T16:17:31Z",
       "lockReason": null
@@ -200,6 +245,11 @@
       "expectedGoals": {
         "home": 1.47,
         "away": 1.23
+      },
+      "likelyScore": {
+        "home": 1,
+        "away": 1,
+        "probability": 0.1217
       },
       "analysis": null,
       "lockedAt": "2026-10-22T16:17:31Z",

@@ -17,9 +17,12 @@ npm run check    # mock data and chip color self-check
 
 Pages read through `src/lib/api.ts` and do not know the source.
 
-- `API_BASE_URL` set: fetched from that backend (contract in `src/lib/types.ts`).
-- `API_BASE_URL` unset, development: read from `mocks/`. The header shows a MOCK DATA banner.
-- `API_BASE_URL` unset, production: pages show an inline error. Mocks are never served in production.
+The first of these that applies:
+
+1. `API_BASE_URL` set: fetched from that backend (contract in `src/lib/types.ts`).
+2. `data/` exists: the real forecasts, written by `python -m pipeline.export` from the repo root and committed.
+3. Development only: `mocks/`, with a MOCK DATA banner in the header. `USE_MOCKS=1 npm run dev` forces the mocks while `data/` exists.
+4. Production with none of the above: pages show an inline error. Mocks are never served in production.
 
 ## Mock data
 

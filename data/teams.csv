@@ -1,31 +1,31 @@
-canonical,fd_couk_name,fd_org_name
-Arsenal,Arsenal,Arsenal FC
-Aston Villa,Aston Villa,Aston Villa FC
-Bournemouth,Bournemouth,AFC Bournemouth
-Brentford,Brentford,Brentford FC
-Brighton,Brighton,Brighton & Hove Albion FC
-Burnley,Burnley,Burnley FC
-Chelsea,Chelsea,Chelsea FC
-Coventry,Coventry,Coventry City FC
-Crystal Palace,Crystal Palace,Crystal Palace FC
-Everton,Everton,Everton FC
-Fulham,Fulham,Fulham FC
-Hull,Hull,Hull City AFC
-Ipswich,Ipswich,Ipswich Town FC
-Leeds,Leeds,Leeds United FC
-Leicester,Leicester,Leicester City FC
-Liverpool,Liverpool,Liverpool FC
-Luton,Luton,Luton Town FC
-Man City,Man City,Manchester City FC
-Man United,Man United,Manchester United FC
-Newcastle,Newcastle,Newcastle United FC
-Norwich,Norwich,Norwich City FC
-Nottingham Forest,Nott'm Forest,Nottingham Forest FC
-Sheffield United,Sheffield United,Sheffield United FC
-Southampton,Southampton,Southampton FC
-Sunderland,Sunderland,Sunderland AFC
-Tottenham,Tottenham,Tottenham Hotspur FC
-Watford,Watford,Watford FC
-West Brom,West Brom,West Bromwich Albion FC
-West Ham,West Ham,West Ham United FC
-Wolves,Wolves,Wolverhampton Wanderers FC
+canonical,fd_couk_name,fd_org_name,code
+Arsenal,Arsenal,Arsenal FC,ARS
+Aston Villa,Aston Villa,Aston Villa FC,AVL
+Bournemouth,Bournemouth,AFC Bournemouth,BOU
+Brentford,Brentford,Brentford FC,BRE
+Brighton,Brighton,Brighton & Hove Albion FC,BHA
+Burnley,Burnley,Burnley FC,BUR
+Chelsea,Chelsea,Chelsea FC,CHE
+Coventry,Coventry,Coventry City FC,COV
+Crystal Palace,Crystal Palace,Crystal Palace FC,CRY
+Everton,Everton,Everton FC,EVE
+Fulham,Fulham,Fulham FC,FUL
+Hull,Hull,Hull City AFC,HUL
+Ipswich,Ipswich,Ipswich Town FC,IPS
+Leeds,Leeds,Leeds United FC,LEE
+Leicester,Leicester,Leicester City FC,LEI
+Liverpool,Liverpool,Liverpool FC,LIV
+Luton,Luton,Luton Town FC,LUT
+Man City,Man City,Manchester City FC,MCI
+Man United,Man United,Manchester United FC,MUN
+Newcastle,Newcastle,Newcastle United FC,NEW
+Norwich,Norwich,Norwich City FC,NOR
+Nottingham Forest,Nott'm Forest,Nottingham Forest FC,NFO
+Sheffield United,Sheffield United,Sheffield United FC,SHU
+Southampton,Southampton,Southampton FC,SOU
+Sunderland,Sunderland,Sunderland AFC,SUN
+Tottenham,Tottenham,Tottenham Hotspur FC,TOT
+Watford,Watford,Watford FC,WAT
+West Brom,West Brom,West Bromwich Albion FC,WBA
+West Ham,West Ham,West Ham United FC,WHU
+Wolves,Wolves,Wolverhampton Wanderers FC,WOL

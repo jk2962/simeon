@@ -77,6 +77,10 @@ for (const { matchweek, status, matchesLockedAt, tableLockedAt } of matchweeks) 
     const p = m.prediction;
     assert.ok(near(p.homeWin + p.draw + p.awayWin, 1), `${at} ${m.id} probabilities`);
     assert.equal(p.lockedAt, matchesLockedAt);
+    const likely = p.likelyScore;
+    assert.ok(Number.isInteger(likely.home) && Number.isInteger(likely.away) && likely.probability > 0.02 && likely.probability < 1, `${at} ${m.id} likely score`);
+    // The likeliest scoreline is the whole number at or just below each expected-goals figure.
+    assert.ok(Math.abs(likely.home - p.expectedGoals.home) <= 1 && Math.abs(likely.away - p.expectedGoals.away) <= 1, `${at} ${m.id} likely score near expected goals`);
     assert.ok(new Date(p.lockedAt) < new Date(m.kickoff), `${at} ${m.id} locked before kickoff`);
     const played = status === "complete";
     assert.equal(m.result !== null, played, `${at} ${m.id} result`);
