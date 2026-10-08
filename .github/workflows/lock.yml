@@ -1,0 +1,45 @@
+name: lock
+
+on:
+  schedule:
+    - cron: "17 * * * *" # hourly, off the top of the hour, when scheduled runs are delayed most
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# One lock at a time. A queued run starts after the running one has pushed.
+concurrency:
+  group: lock
+  cancel-in-progress: false
+
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      FOOTBALL_DATA_API_KEY: ${{ secrets.FOOTBALL_DATA_API_KEY }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      - name: Lock the next round if it is due
+        run: python -m pipeline.run --lock-due
+
+      - name: Commit and push the lock
+        run: |
+          git add forecasts
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Forecast: $(git diff --cached --name-only | xargs) (locked before kickoff)"
+          git pull --rebase
+          git push
+
+      - name: Fail if a round is under 2h from kickoff and still unlocked
+        if: always()
+        run: python -m pipeline.run --assert-locked

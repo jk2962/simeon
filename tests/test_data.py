@@ -219,3 +219,11 @@ def test_postponed_fixture_is_kept_with_no_kickoff(monkeypatch):
     assert pd.isna(fixtures["kickoff_utc"].iloc[1])
     assert str(fixtures["kickoff_utc"].dt.tz) == "UTC"
     assert pd.concat([fixtures["home"], fixtures["away"]]).value_counts().eq(1).all()
+
+
+def test_missing_token_stops_in_ci_instead_of_using_the_manual_file(monkeypatch):
+    monkeypatch.setattr(ingest, "load_env_file", lambda: None)
+    monkeypatch.delenv("FOOTBALL_DATA_API_KEY", raising=False)
+    monkeypatch.setenv("CI", "true")
+    with pytest.raises(SystemExit, match="FOOTBALL_DATA_API_KEY is not set"):
+        ingest.load_fixtures()

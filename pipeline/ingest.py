@@ -182,7 +182,8 @@ def load_fixtures():
     it, but no forecast can be locked for it until it is rescheduled.
 
     Uses the football-data.org API. If the token is missing or the call fails,
-    falls back to data/manual_fixtures.csv with a loud warning.
+    falls back to data/manual_fixtures.csv with a loud warning, except in CI
+    (the CI environment variable), where it stops instead.
     """
     load_env_file()
     token = os.environ.get("FOOTBALL_DATA_API_KEY")
@@ -220,6 +221,9 @@ def load_fixtures():
 
 
 def _manual_fixtures(reason):
+    # An unattended run must not lock a forecast on a hand-maintained file.
+    if os.environ.get("CI"):
+        raise SystemExit(f"STOP: {reason}. No fallback to {MANUAL_FIXTURES_CSV.name} in CI.")
     print("!" * 70)
     print(f"!!! WARNING: {reason}.")
     print(f"!!! FALLING BACK TO {MANUAL_FIXTURES_CSV}")

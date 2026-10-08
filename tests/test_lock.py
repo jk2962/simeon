@@ -3,7 +3,15 @@
 import pandas as pd
 import pytest
 
-from pipeline.run import is_whole_round, lock_reason, lock_units, round_started
+from pipeline.run import (
+    SEASON_MATCHES,
+    is_whole_round,
+    lock_due,
+    lock_reason,
+    lock_units,
+    results_in,
+    round_started,
+)
 
 NOW = pd.Timestamp("2026-10-15 12:00", tz="UTC")
 ROUND_7 = "2026-10-17T14:00:00Z"
@@ -108,3 +116,54 @@ def test_round_started():
     assert not round_started(fixtures, 7, NOW)
     assert round_started(fixtures.iloc[1:], 7, NOW)  # the API no longer lists a played match
     assert round_started(fixtures, 7, pd.Timestamp(ROUND_7))  # the manual file shows a past kickoff
+
+
+KICKOFF = pd.Timestamp(ROUND_7)
+
+
+def before(**delta):
+    return KICKOFF - pd.Timedelta(**delta)
+
+
+@pytest.mark.parametrize(
+    "now, results_are_in, due",
+    [
+        (before(hours=30, seconds=1), True, False),  # window not open yet
+        (before(hours=30), True, True),
+        (before(hours=30), False, False),  # in the window, waiting for results
+        (before(hours=6), False, False),  # "under 6h" excludes 6h itself
+        (before(hours=6) + pd.Timedelta(seconds=1), False, True),
+        (before(hours=1), False, True),
+        (before(minutes=59, seconds=59), True, False),  # the scheduled window has closed
+        (KICKOFF, True, False),
+        (KICKOFF + pd.Timedelta(minutes=1), True, False),  # a run after kickoff
+    ],
+)
+def test_lock_due_boundaries(now, results_are_in, due):
+    assert lock_due(KICKOFF, now, results_are_in) is due
+
+
+def test_lock_due_with_a_47_75h_gap_between_rounds():
+    # Monday 20:00 to Wednesday 19:45: the window opens 17.75h after the
+    # previous round's last kickoff, when its result may not be in the data.
+    last_kickoff = pd.Timestamp("2026-10-19T20:00:00Z")
+    kickoff = last_kickoff + pd.Timedelta(hours=47.75)
+    opens = kickoff - pd.Timedelta(hours=30)
+    assert opens - last_kickoff == pd.Timedelta(hours=17.75)
+    assert not lock_due(kickoff, opens, False)
+    assert lock_due(kickoff, opens, True)  # locks on the first run that has the result
+    assert lock_due(kickoff, kickoff - pd.Timedelta(hours=5, minutes=59), False)
+
+
+def test_results_in_counts_every_match_that_has_kicked_off():
+    fixtures = make_fixtures()  # 20 still to play
+    assert results_in(fixtures, SEASON_MATCHES - 20, NOW)
+    assert not results_in(fixtures, SEASON_MATCHES - 21, NOW)
+    # The manual file still lists a match that has kicked off: its result is waited for.
+    assert not results_in(fixtures, SEASON_MATCHES - 20, pd.Timestamp(ROUND_7))
+
+
+def test_results_in_does_not_wait_for_a_postponed_match():
+    fixtures = make_fixtures(moved="no date")
+    fixtures.loc[0, "matchday"] = 6  # postponed out of the previous round
+    assert results_in(fixtures, SEASON_MATCHES - 20, NOW)

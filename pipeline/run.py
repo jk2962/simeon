@@ -25,6 +25,16 @@ BOOK_COLS = ["book_home", "book_draw", "book_away"]
 # the match that was forecast. Anything further is a postponement.
 RESCHEDULE_TOLERANCE = pd.Timedelta(days=1)
 
+# When the scheduled job locks, as time left before the first kickoff.
+LOCK_OPENS = pd.Timedelta(hours=30)  # never earlier than this
+LOCK_FALLBACK = pd.Timedelta(hours=6)  # from here on, stop waiting for results
+LOCK_CLOSES = pd.Timedelta(hours=1)  # the scheduled job does not lock later than this
+# Nothing locks later than this, by hand or scheduled: the file still has to
+# be committed and pushed before kickoff.
+LOCK_REFUSE = pd.Timedelta(minutes=15)
+LOCK_ALARM = pd.Timedelta(hours=2)  # still unlocked this late fails the workflow
+SEASON_MATCHES = 38 * MATCHES_PER_ROUND
+
 
 def walk_forward_blocks(season_df):
     """Group a season's matches into matchweeks for walk-forward refitting.
@@ -244,12 +254,78 @@ def lock_reason(unit, fixtures, now, round_locked):
     return "missed-lock" if started and not round_locked else "rescheduled"
 
 
+def results_in(fixtures, n_results, now):
+    """True if every match of the season that has kicked off has a result.
+
+    n_results: matches of the current season in the results data. The results
+    carry no matchday, so this counts instead of naming the previous round:
+    every match not listed as still to play must have a result. A postponed
+    match is still listed, so it is not waited for.
+    """
+    unplayed = fixtures["kickoff_utc"].isna() | (fixtures["kickoff_utc"] > now)
+    return n_results >= SEASON_MATCHES - int(unplayed.sum())
+
+
+def lock_due(first_kickoff, now, results_are_in):
+    """Whether the scheduled job should lock now. Pure: no clock, no files.
+
+    Inside the window (LOCK_OPENS to LOCK_CLOSES before the first kickoff) it
+    locks as soon as the earlier results are in the data, and stops waiting
+    for them once kickoff is under LOCK_FALLBACK away.
+    """
+    to_kickoff = first_kickoff - now
+    if not LOCK_CLOSES <= to_kickoff <= LOCK_OPENS:
+        return False
+    return bool(results_are_in) or to_kickoff < LOCK_FALLBACK
+
+
+def lock_if_due():
+    """Lock the next group of fixtures if lock_due says so, otherwise do nothing.
+
+    Safe to run any number of times: a group that is locked is no longer the
+    next group, and the one after it is not due yet.
+    """
+    season = ingest.season_label(ingest.CURRENT_SEASON)
+    fixtures = ingest.load_fixtures()
+    now = pd.Timestamp.now(tz="UTC")
+    units = lock_units(fixtures, now, locked_kickoffs(season))
+    if not units:
+        print("Nothing to lock: no upcoming fixtures without a locked forecast.")
+        return
+    matchday = int(units[0]["matchday"].iloc[0])
+    first_kickoff = units[0]["kickoff_utc"].min()
+    hours = (first_kickoff - now) / pd.Timedelta(hours=1)
+    # Outside the window the results cannot matter, so they are not downloaded.
+    if not lock_due(first_kickoff, now, True):
+        print(f"Not due: round {matchday} kicks off in {hours:.1f}h, outside the lock window.")
+        return
+    history = ingest.load_history()
+    n_results = int((history["season"] == season).sum())
+    if not lock_due(first_kickoff, now, results_in(fixtures, n_results, now)):
+        print(f"Not due: round {matchday} kicks off in {hours:.1f}h, still waiting for results.")
+        return
+    forecast()
+
+
+def assert_locked():
+    """Exit with an error if the next unlocked fixtures kick off within LOCK_ALARM."""
+    fixtures = ingest.load_fixtures()
+    now = pd.Timestamp.now(tz="UTC")
+    units = lock_units(fixtures, now, locked_kickoffs(ingest.season_label(ingest.CURRENT_SEASON)))
+    if units and units[0]["kickoff_utc"].min() - now < LOCK_ALARM:
+        raise SystemExit(
+            f"UNLOCKED: round {int(units[0]['matchday'].iloc[0])} kicks off at "
+            f"{units[0]['kickoff_utc'].min().strftime(UTC_FORMAT)} with no locked forecast."
+        )
+    print("No unlocked fixtures within 2h of kickoff.")
+
+
 def forecast():
     """Forecast the next round and write it to forecasts/<season>/round-NN.csv.
 
     The file is the locked record, so this refuses to run when the result
-    could not be trusted or reproduced: uncommitted code, or a forecast file
-    that already exists.
+    could not be trusted or reproduced: uncommitted code, a forecast file
+    that already exists, or a first kickoff less than LOCK_REFUSE away.
 
     round-NN.csv is only ever a complete round locked before its first
     kickoff (less any match postponed out of it). Every other lock goes to
@@ -321,6 +397,14 @@ def forecast():
     unknown = sorted((set(forecasts["home"]) | set(forecasts["away"])) - canonical)
     if unknown:
         raise ValueError(f"Non-canonical team names: {unknown}")
+
+    # The clock is read again here, not taken from `now`: a scheduled run can
+    # start late, and the downloads and the fit take time.
+    if first_kickoff - pd.Timestamp.now(tz="UTC") < LOCK_REFUSE:
+        raise SystemExit(
+            f"REFUSING TO FORECAST: round {matchday} kicks off at "
+            f"{first_kickoff.strftime(UTC_FORMAT)}, less than 15 minutes away."
+        )
 
     path.parent.mkdir(parents=True, exist_ok=True)
     forecasts.to_csv(path, index=False, mode="x")  # "x": fail if the file exists
@@ -447,6 +531,10 @@ if __name__ == "__main__":
     parser.add_argument("--check", action="store_true", help="load, validate and report")
     parser.add_argument("--backtest", action="store_true", help="holdout sanity check on 2025-26")
     parser.add_argument("--forecast", action="store_true", help="forecast and lock the next round")
+    parser.add_argument("--lock-due", action="store_true", help="lock the next round if its lock is due")
+    parser.add_argument(
+        "--assert-locked", action="store_true", help="fail if a round is under 2h from kickoff and unlocked"
+    )
     parser.add_argument("--score", action="store_true", help="score locked forecasts against results")
     args = parser.parse_args()
     if args.check:
@@ -455,6 +543,10 @@ if __name__ == "__main__":
         backtest()
     elif args.forecast:
         forecast()
+    elif args.lock_due:
+        lock_if_due()
+    elif args.assert_locked:
+        assert_locked()
     elif args.score:
         score()
     else:
