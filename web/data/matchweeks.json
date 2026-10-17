@@ -2,8 +2,15 @@
   {
     "season": "2026-27",
     "matchweek": 6,
-    "status": "upcoming",
+    "status": "complete",
     "matchesLockedAt": "2026-10-07T22:35:46Z",
     "tableLockedAt": "2026-10-08T04:49:45Z"
+  },
+  {
+    "season": "2026-27",
+    "matchweek": 7,
+    "status": "upcoming",
+    "matchesLockedAt": "2026-10-16T07:10:37Z",
+    "tableLockedAt": "2026-10-17T06:55:17Z"
   }
 ]

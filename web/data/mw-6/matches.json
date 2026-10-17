@@ -21,9 +21,20 @@
       "lockedAt": "2026-10-07T22:35:46Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 2,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.6538287267784323,
+      "pDraw": 0.21205256003624828,
+      "pAway": 0.13411871318531945
+    },
+    "scores": {
+      "rpsModel": 0.07949717094742885,
+      "rpsNaive": 0.2181304684190167,
+      "rpsBookmaker": 0.06891118981516363
+    }
   },
   {
     "id": "560592",
@@ -47,9 +58,20 @@
       "lockedAt": "2026-10-07T22:35:46Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 0,
+      "away": 2
+    },
+    "market": {
+      "pHome": 0.3167951671863678,
+      "pDraw": 0.2807526032549847,
+      "pAway": 0.4024522295586475
+    },
+    "scores": {
+      "rpsModel": 0.23250730169679387,
+      "rpsNaive": 0.31469699202416695,
+      "rpsBookmaker": 0.22871125795603503
+    }
   },
   {
     "id": "560595",
@@ -73,9 +95,20 @@
       "lockedAt": "2026-10-07T22:35:46Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 5,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.5225448119161827,
+      "pDraw": 0.23933350164099973,
+      "pAway": 0.23812168644281742
+    },
+    "scores": {
+      "rpsModel": 0.19955577786160428,
+      "rpsNaive": 0.2181304684190167,
+      "rpsBookmaker": 0.14233269709126242
+    }
   },
   {
     "id": "560599",
@@ -99,9 +132,20 @@
       "lockedAt": "2026-10-07T22:35:46Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 2,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.31914621727931636,
+      "pDraw": 0.2754148114130543,
+      "pAway": 0.40543897130762935
+    },
+    "scores": {
+      "rpsModel": 0.4786039314046785,
+      "rpsNaive": 0.2181304684190167,
+      "rpsBookmaker": 0.3139713164500263
+    }
   },
   {
     "id": "560601",
@@ -125,9 +169,20 @@
       "lockedAt": "2026-10-07T22:35:46Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 2,
+      "away": 2
+    },
+    "market": {
+      "pHome": 0.37405797101449273,
+      "pDraw": 0.2647826086956522,
+      "pAway": 0.36115942028985504
+    },
+    "scores": {
+      "rpsModel": 0.1430130369852444,
+      "rpsNaive": 0.14774420232459615,
+      "rpsBookmaker": 0.13517774627179163
+    }
   },
   {
     "id": "560600",
@@ -151,9 +206,20 @@
       "lockedAt": "2026-10-07T22:35:46Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 1,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.5611325259484039,
+      "pDraw": 0.22606778023820592,
+      "pAway": 0.21279969381339023
+    },
+    "scores": {
+      "rpsModel": 0.1642301339499945,
+      "rpsNaive": 0.14774420232459615,
+      "rpsBookmaker": 0.18007671068215442
+    }
   },
   {
     "id": "560594",
@@ -177,9 +243,20 @@
       "lockedAt": "2026-10-07T22:35:46Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 2,
+      "away": 2
+    },
+    "market": {
+      "pHome": 0.23485386153945415,
+      "pDraw": 0.28098587005613257,
+      "pAway": 0.4841602684044132
+    },
+    "scores": {
+      "rpsModel": 0.11200422324570246,
+      "rpsNaive": 0.14774420232459615,
+      "rpsBookmaker": 0.14478375089071333
+    }
   },
   {
     "id": "560596",
@@ -203,9 +280,20 @@
       "lockedAt": "2026-10-07T22:35:46Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 3,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.33889128514798617,
+      "pDraw": 0.28105654486824,
+      "pAway": 0.3800521699837739
+    },
+    "scores": {
+      "rpsModel": 0.27081041053920674,
+      "rpsNaive": 0.2181304684190167,
+      "rpsBookmaker": 0.2907521923813283
+    }
   },
   {
     "id": "560598",
@@ -229,9 +317,20 @@
       "lockedAt": "2026-10-07T22:35:46Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 0,
+      "away": 3
+    },
+    "market": {
+      "pHome": 0.2817224003664682,
+      "pDraw": 0.25652771415483283,
+      "pAway": 0.4617498854786991
+    },
+    "scores": {
+      "rpsModel": 0.2571097372414294,
+      "rpsNaive": 0.31469699202416695,
+      "rpsBookmaker": 0.1845403483252191
+    }
   },
   {
     "id": "560597",
@@ -255,8 +354,19 @@
       "lockedAt": "2026-10-07T22:35:46Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 4,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.26676859233373373,
+      "pDraw": 0.253860434640166,
+      "pAway": 0.4793709730261002
+    },
+    "scores": {
+      "rpsModel": 0.6236027867195276,
+      "rpsNaive": 0.2181304684190167,
+      "rpsBookmaker": 0.3837124134841222
+    }
   }
 ]
