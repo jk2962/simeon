@@ -173,6 +173,24 @@ def position_spread(positions):
     return float(np.sqrt(positions.to_numpy() @ place**2 - mean**2).mean())
 
 
+def table_rows(table, exp_points, positions, season, matchday):
+    """The per-team columns of a table-round-NN.csv, before the audit columns."""
+    out = pd.DataFrame(
+        {
+            "season": season,
+            "matchday": matchday,
+            "team": table.index,
+            "played": table["played"].to_numpy(),
+            "points": table["points"].to_numpy(),
+            "exp_points": exp_points.to_numpy(),
+            "p_title": positions[1].to_numpy(),
+            "p_top4": positions.loc[:, :TOP].sum(axis=1).to_numpy(),
+            "p_relegation": positions.iloc[:, -RELEGATED:].sum(axis=1).to_numpy(),
+        }
+    )
+    return pd.concat([out, positions.add_prefix("pos_").reset_index(drop=True)], axis=1)
+
+
 def snapshot():
     """Simulate the rest of the season and lock it before the next round.
 
@@ -239,21 +257,7 @@ def snapshot():
     if not 0.15 < draw_rate < 0.35:
         raise ValueError(f"Implausible simulated draw rate: {draw_rate:.3f}")
 
-    out = pd.DataFrame(
-        {
-            "season": season,
-            "matchday": matchday,
-            "team": table.index,
-            "played": table["played"].to_numpy(),
-            "points": table["points"].to_numpy(),
-            "exp_points": exp_points.to_numpy(),
-            "p_title": positions[1].to_numpy(),
-            "p_top4": positions.loc[:, :TOP].sum(axis=1).to_numpy(),
-            "p_relegation": positions.iloc[:, -RELEGATED:].sum(axis=1).to_numpy(),
-        }
-    )
-    out = pd.concat([out, positions.add_prefix("pos_").reset_index(drop=True)], axis=1)
-    out = out.assign(
+    out = table_rows(table, exp_points, positions, season, matchday).assign(
         model_version=model_version,
         prior_strength=model.PRIOR_STRENGTH,
         n_runs=N_RUNS,

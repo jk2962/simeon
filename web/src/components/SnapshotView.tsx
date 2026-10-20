@@ -6,7 +6,15 @@ import { PositionGrid } from "./PositionGrid";
 
 // The Snapshot page body: where the model expects each club to finish, next
 // to where it stands now, and how the forecast moved since last week.
-export async function SnapshotView({ matchweek, hasPrevious }: { matchweek: number; hasPrevious: boolean }) {
+export async function SnapshotView({
+  matchweek,
+  hasPrevious,
+  retrospective,
+}: {
+  matchweek: number;
+  hasPrevious: boolean;
+  retrospective: boolean;
+}) {
   const [current, earlier] = await Promise.all([
     getSnapshot(matchweek),
     hasPrevious ? getSnapshot(matchweek - 1) : null,
@@ -33,15 +41,25 @@ export async function SnapshotView({ matchweek, hasPrevious }: { matchweek: numb
   return (
     <>
       <h1 className="text-3xl font-bold">Season forecast</h1>
-      <p className="mt-1 text-muted">
-        Locked before MW{matchweek} · <time dateTime={snapshot.lockedAt}>{ukDateTime(snapshot.lockedAt)}</time> · model{" "}
-        {snapshot.modelVersion.slice(0, 7)}
-      </p>
+      {retrospective ? (
+        <p className="mt-3 max-w-prose border-l-4 border-ink pl-3">
+          <span className="font-semibold">Retrospective — not locked.</span> Simulated afterwards by the current model,
+          fitted only on matches before MW{matchweek}&apos;s first kickoff. Newly promoted clubs with little or no
+          Premier League data get very wide strength ranges, which inflates their title and top-four chances.
+        </p>
+      ) : (
+        <p className="mt-1 text-muted">
+          Locked before MW{matchweek} · <time dateTime={snapshot.lockedAt}>{ukDateTime(snapshot.lockedAt)}</time> · model{" "}
+          {snapshot.modelVersion.slice(0, 7)}
+        </p>
+      )}
       {!previous && (
         <p className="mt-1 text-sm text-muted">
           {hasPrevious
             ? `The MW${matchweek - 1} forecast could not be loaded, so changes since then are not shown.`
-            : "First locked forecast — no previous week to compare."}
+            : retrospective
+              ? "First week — no previous week to compare."
+              : "First locked forecast — no previous week to compare."}
         </p>
       )}
 

@@ -268,7 +268,7 @@ def export(out_dir=OUT_DIR):
             matches_by_round[int(matchday)] = build_matches(round_df, codes, analysis)
 
     snapshots = {}
-    for path in sorted(season_dir.glob("table-round-*.csv")):
+    for path in sorted(season_dir.glob("table-round-*.csv")) + sorted(season_dir.glob("retro-table-round-*.csv")):
         snapshot = build_snapshot(pd.read_csv(path), history, codes)
         snapshots[snapshot["matchweek"]] = snapshot
 
@@ -287,7 +287,7 @@ def export(out_dir=OUT_DIR):
                 # A round locked only in parts has no whole-round file: use its earliest lock.
                 # A retrospective round was never locked.
                 "matchesLockedAt": None if matchday in retro_rounds else round_locks.get(matchday, locks[0] if locks else None),
-                "tableLockedAt": snapshots[matchday]["lockedAt"] if matchday in snapshots else None,
+                "tableLockedAt": snapshots[matchday]["lockedAt"] if matchday in snapshots and matchday not in retro_rounds else None,
             }
         )
 
