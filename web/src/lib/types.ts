@@ -7,6 +7,9 @@ export interface MatchweekSummary {
   season: string; // "2026-27"
   matchweek: number; // 1–38 (pipeline: matchday)
   status: "upcoming" | "in_progress" | "complete";
+  // Forecast after the fact, on data before the week's first kickoff
+  // (pipeline.retro). Never locked: both timestamps are null.
+  retrospective: boolean;
   // Match forecasts and the season table are locked separately, so each has
   // its own timestamp. Null until that lock exists.
   matchesLockedAt: string | null; // ISO 8601
@@ -66,8 +69,9 @@ export interface Match {
     likelyScore: { home: number; away: number; probability: number };
     analysis: string | null; // plain text
     // Per match, not per matchweek: a rescheduled match is locked on its own.
+    // For a retrospective forecast, when it was generated (after kickoff).
     lockedAt: string; // ISO 8601
-    lockReason: "missed-lock" | "rescheduled" | null;
+    lockReason: "missed-lock" | "rescheduled" | "retrospective" | null;
   };
   result: { home: number; away: number } | null;
   // Both null until the match is played and scored.

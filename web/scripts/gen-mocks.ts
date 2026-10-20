@@ -340,7 +340,7 @@ for (const round of ROUNDS) {
   mkdirSync(new URL(`mw-${matchweek}/`, OUT), { recursive: true });
   writeFileSync(new URL(`mw-${matchweek}/matches.json`, OUT), JSON.stringify(matches, null, 2) + "\n");
   writeFileSync(new URL(`mw-${matchweek}/snapshot.json`, OUT), JSON.stringify(snapshot, null, 2) + "\n");
-  summaries.push({ season: SEASON, matchweek, status, matchesLockedAt: round.matchesLockedAt, tableLockedAt: round.tableLockedAt });
+  summaries.push({ season: SEASON, matchweek, status, retrospective: false, matchesLockedAt: round.matchesLockedAt, tableLockedAt: round.tableLockedAt });
 }
 writeFileSync(new URL("matchweeks.json", OUT), JSON.stringify(summaries, null, 2) + "\n");
 

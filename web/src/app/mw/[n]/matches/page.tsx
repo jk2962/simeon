@@ -9,12 +9,16 @@ export default function MatchesPage({ params }: PageProps<"/mw/[n]/matches">) {
     <MatchweekPage
       params={params}
       tab="matches"
-      render={(matchweek, matchweeks) => (
-        <MatchesView
-          matchweek={matchweek}
-          weekLockedAt={matchweeks.find((m) => m.matchweek === matchweek)?.matchesLockedAt ?? null}
-        />
-      )}
+      render={(matchweek, matchweeks) => {
+        const week = matchweeks.find((m) => m.matchweek === matchweek);
+        return (
+          <MatchesView
+            matchweek={matchweek}
+            weekLockedAt={week?.matchesLockedAt ?? null}
+            retrospective={week?.retrospective ?? false}
+          />
+        );
+      }}
     />
   );
 }

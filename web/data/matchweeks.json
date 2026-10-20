@@ -1,8 +1,49 @@
 [
   {
     "season": "2026-27",
+    "matchweek": 1,
+    "status": "complete",
+    "retrospective": true,
+    "matchesLockedAt": null,
+    "tableLockedAt": null
+  },
+  {
+    "season": "2026-27",
+    "matchweek": 2,
+    "status": "complete",
+    "retrospective": true,
+    "matchesLockedAt": null,
+    "tableLockedAt": null
+  },
+  {
+    "season": "2026-27",
+    "matchweek": 3,
+    "status": "complete",
+    "retrospective": true,
+    "matchesLockedAt": null,
+    "tableLockedAt": null
+  },
+  {
+    "season": "2026-27",
+    "matchweek": 4,
+    "status": "complete",
+    "retrospective": true,
+    "matchesLockedAt": null,
+    "tableLockedAt": null
+  },
+  {
+    "season": "2026-27",
+    "matchweek": 5,
+    "status": "complete",
+    "retrospective": true,
+    "matchesLockedAt": null,
+    "tableLockedAt": null
+  },
+  {
+    "season": "2026-27",
     "matchweek": 6,
     "status": "complete",
+    "retrospective": false,
     "matchesLockedAt": "2026-10-07T22:35:46Z",
     "tableLockedAt": "2026-10-08T04:49:45Z"
   },
@@ -10,6 +51,7 @@
     "season": "2026-27",
     "matchweek": 7,
     "status": "complete",
+    "retrospective": false,
     "matchesLockedAt": "2026-10-16T07:10:37Z",
     "tableLockedAt": "2026-10-17T06:55:17Z"
   }

@@ -19,9 +19,14 @@ export function marketProbs(match: Match): Record<Outcome, number> | null {
   return match.market && { home: match.market.pHome, draw: match.market.pDraw, away: match.market.pAway };
 }
 
+export function isRetrospective(match: Match): boolean {
+  return match.prediction.lockReason === "retrospective";
+}
+
 // A forecast only counts if it was locked before the match kicked off.
+// Retrospective forecasts are scored on their own weeks, labelled as such.
 export function lockedInTime(match: Match): boolean {
-  return Date.parse(match.prediction.lockedAt) < Date.parse(match.kickoff);
+  return isRetrospective(match) || Date.parse(match.prediction.lockedAt) < Date.parse(match.kickoff);
 }
 
 // The outcome where model and market are furthest apart, if by 10 points or more.

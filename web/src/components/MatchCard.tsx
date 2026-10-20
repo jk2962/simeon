@@ -20,6 +20,7 @@ function Side({ code, end = false }: { code: TeamCode; end?: boolean }) {
 // Why this match's lock is worth a line, or null for an ordinary lock.
 function lockNote(match: Match, weekLockedAt: string | null): string | null {
   const { lockedAt, lockReason } = match.prediction;
+  if (lockReason === "retrospective") return null; // the week says so once
   if (lockReason === "rescheduled") return `Locked separately (rescheduled) · ${ukDateTime(lockedAt)}`;
   if (lockReason === "missed-lock") return `Locked late · ${ukDateTime(lockedAt)}`;
   if (weekLockedAt && lockedAt !== weekLockedAt) return `Locked separately · ${ukDateTime(lockedAt)}`;

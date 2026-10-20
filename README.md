@@ -20,6 +20,7 @@ export FOOTBALL_DATA_API_KEY=...   # football-data.org token; never commit it
 .venv/bin/python -m pipeline.run --forecast   # lock the next round; needs a clean working tree
 .venv/bin/python -m pipeline.run --score      # score locked forecasts, rewrite forecasts/scores.csv
 .venv/bin/python -m pipeline.simulate         # lock the season-table snapshot for the next round; needs a clean working tree
+.venv/bin/python -m pipeline.retro            # rounds 1-5 forecast after the fact (never locked, shown labelled on the site)
 ```
 
 `.github/workflows/lock.yml` runs `--lock-due` every hour. It locks the next round

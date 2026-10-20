@@ -1,0 +1,372 @@
+[
+  {
+    "id": "560591",
+    "kickoff": "2026-09-18T19:00:00Z",
+    "home": "BRE",
+    "away": "CHE",
+    "prediction": {
+      "homeWin": 0.399589437051585,
+      "draw": 0.238879253165979,
+      "awayWin": 0.361531309782436,
+      "expectedGoals": {
+        "home": 1.5868751494854136,
+        "away": 1.4992139633094697
+      },
+      "likelyScore": {
+        "home": 1,
+        "away": 1,
+        "probability": 0.10867647794596876
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-20T00:35:46Z",
+      "lockReason": "retrospective"
+    },
+    "result": {
+      "home": 3,
+      "away": 0
+    },
+    "market": {
+      "pHome": 0.3734701934465061,
+      "pDraw": 0.26029740755362546,
+      "pAway": 0.36623239899986837
+    },
+    "scores": {
+      "rpsModel": 0.24559886602651815,
+      "rpsNaive": 0.21835101441736027,
+      "rpsBookmaker": 0.26333288428857865
+    }
+  },
+  {
+    "id": "560587",
+    "kickoff": "2026-09-19T11:30:00Z",
+    "home": "TOT",
+    "away": "AVL",
+    "prediction": {
+      "homeWin": 0.3555720633833135,
+      "draw": 0.2498034101350388,
+      "awayWin": 0.3946245264816477,
+      "expectedGoals": {
+        "home": 1.383305549838155,
+        "away": 1.470162680802988
+      },
+      "likelyScore": {
+        "home": 1,
+        "away": 1,
+        "probability": 0.11722987810480918
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-20T00:35:46Z",
+      "lockReason": "retrospective"
+    },
+    "result": {
+      "home": 2,
+      "away": 3
+    },
+    "market": {
+      "pHome": 0.500653540095992,
+      "pDraw": 0.2509907667855238,
+      "pAway": 0.24835569311848416
+    },
+    "scores": {
+      "rpsModel": 0.24645547809811819,
+      "rpsNaive": 0.31447170407253267,
+      "rpsBookmaker": 0.4078115656390216
+    }
+  },
+  {
+    "id": "560584",
+    "kickoff": "2026-09-19T14:00:00Z",
+    "home": "EVE",
+    "away": "IPS",
+    "prediction": {
+      "homeWin": 0.6673213861268961,
+      "draw": 0.2014733384043632,
+      "awayWin": 0.1312052754687407,
+      "expectedGoals": {
+        "home": 2.0119398175413687,
+        "away": 0.7580099678923378
+      },
+      "likelyScore": {
+        "home": 2,
+        "away": 0,
+        "probability": 0.12683230348775942
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-20T00:35:46Z",
+      "lockReason": "retrospective"
+    },
+    "result": {
+      "home": 1,
+      "away": 0
+    },
+    "market": {
+      "pHome": 0.5420863435115231,
+      "pDraw": 0.2449948669376754,
+      "pAway": 0.21291878955080146
+    },
+    "scores": {
+      "rpsModel": 0.06394494221967896,
+      "rpsNaive": 0.21835101441736027,
+      "rpsBookmaker": 0.12750966387121268
+    }
+  },
+  {
+    "id": "560586",
+    "kickoff": "2026-09-19T14:00:00Z",
+    "home": "BHA",
+    "away": "ARS",
+    "prediction": {
+      "homeWin": 0.2290661290966361,
+      "draw": 0.2419548074501553,
+      "awayWin": 0.5289790634532084,
+      "expectedGoals": {
+        "home": 1.0194252545856846,
+        "away": 1.6823314707309869
+      },
+      "likelyScore": {
+        "home": 1,
+        "away": 1,
+        "probability": 0.11505609843985319
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-20T00:35:46Z",
+      "lockReason": "retrospective"
+    },
+    "result": {
+      "home": 3,
+      "away": 0
+    },
+    "market": {
+      "pHome": 0.19194515852613536,
+      "pDraw": 0.24592973436161097,
+      "pAway": 0.5621251071122536
+    },
+    "scores": {
+      "rpsModel": 0.4370789414389392,
+      "rpsNaive": 0.21835101441736027,
+      "rpsBookmaker": 0.4844686314376576
+    }
+  },
+  {
+    "id": "560588",
+    "kickoff": "2026-09-19T14:00:00Z",
+    "home": "NEW",
+    "away": "HUL",
+    "prediction": {
+      "homeWin": 0.4435897167678836,
+      "draw": 0.2806340153139255,
+      "awayWin": 0.2757762679181909,
+      "expectedGoals": {
+        "home": 1.3045199530876546,
+        "away": 0.96495714010952
+      },
+      "likelyScore": {
+        "home": 1,
+        "away": 0,
+        "probability": 0.1348433124274814
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-20T00:35:46Z",
+      "lockReason": "retrospective"
+    },
+    "result": {
+      "home": 2,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.5933024967753067,
+      "pDraw": 0.21989533097266611,
+      "pAway": 0.18680217225202728
+    },
+    "scores": {
+      "rpsModel": 0.1928224766166649,
+      "rpsNaive": 0.21835101441736027,
+      "rpsBookmaker": 0.10014895534363774
+    }
+  },
+  {
+    "id": "560589",
+    "kickoff": "2026-09-19T16:30:00Z",
+    "home": "NFO",
+    "away": "COV",
+    "prediction": {
+      "homeWin": 0.7881362970685641,
+      "draw": 0.1536028700603127,
+      "awayWin": 0.0582608328711231,
+      "expectedGoals": {
+        "home": 2.2548919807213963,
+        "away": 0.44517280098566
+      },
+      "likelyScore": {
+        "home": 2,
+        "away": 0,
+        "probability": 0.17084763821087298
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-20T00:35:46Z",
+      "lockReason": "retrospective"
+    },
+    "result": {
+      "home": 0,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.5788316112343986,
+      "pDraw": 0.2400751975348778,
+      "pAway": 0.18109319123072354
+    },
+    "scores": {
+      "rpsModel": 0.7540157408307693,
+      "rpsNaive": 0.31447170407253267,
+      "rpsBookmaker": 0.5028271978064451
+    }
+  },
+  {
+    "id": "560582",
+    "kickoff": "2026-09-20T13:00:00Z",
+    "home": "BOU",
+    "away": "LIV",
+    "prediction": {
+      "homeWin": 0.3469380471414321,
+      "draw": 0.2344506631620712,
+      "awayWin": 0.4186112896964966,
+      "expectedGoals": {
+        "home": 1.5038987962813308,
+        "away": 1.6712429501719557
+      },
+      "likelyScore": {
+        "home": 1,
+        "away": 1,
+        "probability": 0.1050298099872359
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-20T00:35:46Z",
+      "lockReason": "retrospective"
+    },
+    "result": {
+      "home": 0,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.30337611467301,
+      "pDraw": 0.2577868078232407,
+      "pAway": 0.43883707750374934
+    },
+    "scores": {
+      "rpsModel": 0.22918942051134075,
+      "rpsNaive": 0.31447170407253267,
+      "rpsBookmaker": 0.20347044626931216
+    }
+  },
+  {
+    "id": "560585",
+    "kickoff": "2026-09-20T13:00:00Z",
+    "home": "LEE",
+    "away": "CRY",
+    "prediction": {
+      "homeWin": 0.4473480302790154,
+      "draw": 0.2627461570406458,
+      "awayWin": 0.2899058126803386,
+      "expectedGoals": {
+        "home": 1.439680584166798,
+        "away": 1.105187622507435
+      },
+      "likelyScore": {
+        "home": 1,
+        "away": 1,
+        "probability": 0.12487632629667259
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-20T00:35:46Z",
+      "lockReason": "retrospective"
+    },
+    "result": {
+      "home": 0,
+      "away": 0
+    },
+    "market": {
+      "pHome": 0.5691626016022541,
+      "pDraw": 0.23919238447082064,
+      "pAway": 0.19164501392692532
+    },
+    "scores": {
+      "rpsModel": 0.1420828202101813,
+      "rpsNaive": 0.1476613592449465,
+      "rpsBookmaker": 0.1803369392128488
+    }
+  },
+  {
+    "id": "560590",
+    "kickoff": "2026-09-20T13:00:00Z",
+    "home": "MCI",
+    "away": "SUN",
+    "prediction": {
+      "homeWin": 0.6111307336960056,
+      "draw": 0.2300055298885318,
+      "awayWin": 0.1588637364154625,
+      "expectedGoals": {
+        "home": 1.7605249423713931,
+        "away": 0.765853359071873
+      },
+      "likelyScore": {
+        "home": 1,
+        "away": 0,
+        "probability": 0.14075088324847504
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-20T00:35:46Z",
+      "lockReason": "retrospective"
+    },
+    "result": {
+      "home": 5,
+      "away": 3
+    },
+    "market": {
+      "pHome": 0.7062965500899782,
+      "pDraw": 0.18235787613113116,
+      "pAway": 0.11134557377889068
+    },
+    "scores": {
+      "rpsModel": 0.08822849651184426,
+      "rpsNaive": 0.21835101441736027,
+      "rpsBookmaker": 0.049329776644599546
+    }
+  },
+  {
+    "id": "560583",
+    "kickoff": "2026-09-20T15:30:00Z",
+    "home": "FUL",
+    "away": "MUN",
+    "prediction": {
+      "homeWin": 0.3869369673984764,
+      "draw": 0.2522326535146033,
+      "awayWin": 0.3608303790869201,
+      "expectedGoals": {
+        "home": 1.4331998343860757,
+        "away": 1.3755508080039125
+      },
+      "likelyScore": {
+        "home": 1,
+        "away": 1,
+        "probability": 0.11883893149677924
+      },
+      "analysis": null,
+      "lockedAt": "2026-10-20T00:35:46Z",
+      "lockReason": "retrospective"
+    },
+    "result": {
+      "home": 1,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.2705787781350482,
+      "pDraw": 0.25249196141479097,
+      "pAway": 0.4769292604501608
+    },
+    "scores": {
+      "rpsModel": 0.1399593896057701,
+      "rpsNaive": 0.1476613592449465,
+      "rpsBookmaker": 0.15033719732529652
+    }
+  }
+]

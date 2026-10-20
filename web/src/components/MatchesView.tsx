@@ -6,7 +6,15 @@ import { ErrorNote } from "./ErrorNote";
 import { MatchCard } from "./MatchCard";
 
 // The Matches page body: the week in one line, then every fixture by UK date.
-export async function MatchesView({ matchweek, weekLockedAt }: { matchweek: number; weekLockedAt: string | null }) {
+export async function MatchesView({
+  matchweek,
+  weekLockedAt,
+  retrospective,
+}: {
+  matchweek: number;
+  weekLockedAt: string | null;
+  retrospective: boolean;
+}) {
   const [result, now] = await Promise.all([getMatches(matchweek), requestTime()]);
 
   if (!result.ok) {
@@ -30,7 +38,14 @@ export async function MatchesView({ matchweek, weekLockedAt }: { matchweek: numb
   return (
     <>
       <h1 className="text-3xl font-bold">Match forecasts</h1>
-      {lockedAt && (
+      {retrospective && (
+        <p className="mt-3 max-w-prose border-l-4 border-ink pl-3">
+          <span className="font-semibold">Retrospective — not locked.</span> Forecasts were not yet locked before this
+          week. These were made afterwards by the current model, fitted only on matches before the week&apos;s first
+          kickoff, but the model itself was built after these results were known.
+        </p>
+      )}
+      {lockedAt && !retrospective && (
         <p className="mt-1 text-muted">
           Forecasts locked <time dateTime={lockedAt}>{ukDateTime(lockedAt)}</time>.
           {summary.played === 0 ? " Results appear after each match." : ` ${summary.played} of ${summary.total} played.`}
