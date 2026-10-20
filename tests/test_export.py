@@ -116,3 +116,13 @@ def test_check_refuses_a_forecast_locked_at_kickoff():
     matches = export.build_matches(pd.DataFrame([late]), CODES, {})
     with pytest.raises(ValueError, match="at or after kickoff"):
         export.check({6: matches}, {})
+
+
+def test_fill_results_fills_blanks_only_and_leaves_scores_blank():
+    scored = pd.DataFrame([scored_row(), scored_row(match_id=2, **PLAYED)])
+    filled = export.fill_results(scored, {1: (3, 0), 2: (9, 9)})
+    assert (filled.loc[0, "home_goals"], filled.loc[0, "away_goals"]) == (3, 0)
+    assert filled.loc[1, "home_goals"] == scored.loc[1, "home_goals"]
+    match = export.build_matches(filled.iloc[[0]], CODES, {})[0]
+    assert match["result"] == {"home": 3, "away": 0}
+    assert match["market"] is None and match["scores"] is None

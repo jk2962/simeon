@@ -15,10 +15,12 @@ notes (see parse_analysis).
 """
 
 import json
+import os
 import re
 
 import numpy as np
 import pandas as pd
+import requests
 from scipy.stats import poisson
 
 from pipeline import ingest, model, validate
@@ -63,6 +65,45 @@ def parse_analysis(text, fixtures):
         elif current:
             notes[current].append(line.strip())
     return {fixture: " ".join(filter(None, lines)) for fixture, lines in notes.items() if any(lines)}
+
+
+def api_results():
+    """{match_id: (home_goals, away_goals)} for finished matches, from football-data.org.
+
+    football-data.co.uk, the scoring source, can lag the final whistle by
+    days. Empty without a token or if the call fails: the export then just
+    waits for football-data.co.uk.
+    """
+    ingest.load_env_file()
+    token = os.environ.get("FOOTBALL_DATA_API_KEY")
+    if not token:
+        return {}
+    try:
+        response = requests.get(ingest.FIXTURES_URL, headers={"X-Auth-Token": token}, timeout=30)
+        response.raise_for_status()
+        matches = response.json()["matches"]
+    except (requests.RequestException, ValueError, KeyError) as error:
+        print(f"Could not fetch API results ({type(error).__name__}); showing football-data.co.uk results only.")
+        return {}
+    return {
+        m["id"]: (m["score"]["fullTime"]["home"], m["score"]["fullTime"]["away"])
+        for m in matches
+        if m["status"] == "FINISHED"
+    }
+
+
+def fill_results(scored, results):
+    """Fill blank scores from `results` ({match_id: (home, away)}).
+
+    Display only: market and RPS stay blank, so a match is scored only once
+    football-data.co.uk has it with closing odds. A result already there is
+    never overwritten.
+    """
+    scored = scored.copy()
+    blank = scored["home_goals"].isna() & scored["match_id"].isin(results)
+    for col, side in [("home_goals", 0), ("away_goals", 1)]:
+        scored.loc[blank, col] = scored.loc[blank, "match_id"].map(lambda i: results[i][side])
+    return scored
 
 
 def standings(results, teams, codes):
@@ -215,7 +256,7 @@ def export(out_dir=OUT_DIR):
     if frames:
         forecasts = pd.concat(frames, ignore_index=True)
         forecasts["kickoff_utc"] = pd.to_datetime(forecasts["kickoff_utc"], utc=True)
-        scored = score_forecasts(forecasts, history)
+        scored = fill_results(score_forecasts(forecasts, history), api_results())
         for matchday, round_df in scored.groupby("matchday"):
             notes_path = season_dir / f"round-{matchday:02d}-analysis.md"
             fixtures = set(zip(round_df["home"], round_df["away"]))

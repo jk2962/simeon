@@ -21,7 +21,10 @@
       "lockedAt": "2026-10-16T07:10:37Z",
       "lockReason": null
     },
-    "result": null,
+    "result": {
+      "home": 0,
+      "away": 2
+    },
     "market": null,
     "scores": null
   },
@@ -47,7 +50,10 @@
       "lockedAt": "2026-10-16T07:10:37Z",
       "lockReason": null
     },
-    "result": null,
+    "result": {
+      "home": 1,
+      "away": 0
+    },
     "market": null,
     "scores": null
   },
@@ -73,7 +79,10 @@
       "lockedAt": "2026-10-16T07:10:37Z",
       "lockReason": null
     },
-    "result": null,
+    "result": {
+      "home": 3,
+      "away": 2
+    },
     "market": null,
     "scores": null
   },
@@ -99,7 +108,10 @@
       "lockedAt": "2026-10-16T07:10:37Z",
       "lockReason": null
     },
-    "result": null,
+    "result": {
+      "home": 1,
+      "away": 2
+    },
     "market": null,
     "scores": null
   },
@@ -125,7 +137,10 @@
       "lockedAt": "2026-10-16T07:10:37Z",
       "lockReason": null
     },
-    "result": null,
+    "result": {
+      "home": 0,
+      "away": 1
+    },
     "market": null,
     "scores": null
   },
@@ -151,7 +166,10 @@
       "lockedAt": "2026-10-16T07:10:37Z",
       "lockReason": null
     },
-    "result": null,
+    "result": {
+      "home": 2,
+      "away": 0
+    },
     "market": null,
     "scores": null
   },
@@ -177,7 +195,10 @@
       "lockedAt": "2026-10-16T07:10:37Z",
       "lockReason": null
     },
-    "result": null,
+    "result": {
+      "home": 1,
+      "away": 1
+    },
     "market": null,
     "scores": null
   },
@@ -203,7 +224,10 @@
       "lockedAt": "2026-10-16T07:10:37Z",
       "lockReason": null
     },
-    "result": null,
+    "result": {
+      "home": 5,
+      "away": 0
+    },
     "market": null,
     "scores": null
   },
@@ -229,7 +253,10 @@
       "lockedAt": "2026-10-16T07:10:37Z",
       "lockReason": null
     },
-    "result": null,
+    "result": {
+      "home": 0,
+      "away": 1
+    },
     "market": null,
     "scores": null
   },
@@ -255,7 +282,10 @@
       "lockedAt": "2026-10-16T07:10:37Z",
       "lockReason": null
     },
-    "result": null,
+    "result": {
+      "home": 3,
+      "away": 1
+    },
     "market": null,
     "scores": null
   }
