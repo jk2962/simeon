@@ -96,6 +96,16 @@ def test_forecast_locked_at_or_after_kickoff_is_an_error():
         score_forecasts(late, HISTORY)
 
 
+def test_retrospective_forecast_is_scored_but_a_late_lock_still_raises():
+    late = FORECASTS.copy()
+    late["generated_at_utc"] = "2026-10-20T00:00:00Z"
+    late["lock_reason"] = "retrospective"
+    assert score_forecasts(late, HISTORY).iloc[0]["rps_model"] == pytest.approx(0.145)
+    late.loc[0, "lock_reason"] = "missed-lock"
+    with pytest.raises(ValueError, match="locked at or after kickoff"):
+        score_forecasts(late, HISTORY)
+
+
 def test_lock_time_is_compared_with_the_kickoff_actually_played():
     # C v B was forecast for 20:00 on the 10th but played at 12:00 on the 11th.
     # A lock between A v C's kickoff and that one is late for A v C only.

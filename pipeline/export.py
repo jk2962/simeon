@@ -225,7 +225,7 @@ def check(matches_by_round, snapshots):
             p = match["prediction"]
             if abs(p["homeWin"] + p["draw"] + p["awayWin"] - 1.0) > 1e-9:
                 raise ValueError(f"Round {matchday} match {match['id']}: probabilities do not sum to 1")
-            if pd.Timestamp(p["lockedAt"]) >= pd.Timestamp(match["kickoff"]):
+            if p["lockReason"] != "retrospective" and pd.Timestamp(p["lockedAt"]) >= pd.Timestamp(match["kickoff"]):
                 raise ValueError(f"Round {matchday} match {match['id']}: locked at or after kickoff")
     for matchday, snapshot in snapshots.items():
         probs = np.array([row["positionProbabilities"] for row in snapshot["predictedTable"]])
@@ -246,8 +246,12 @@ def export(out_dir=OUT_DIR):
     # Match forecasts: every round file, whole rounds and partial locks alike.
     round_locks = {}  # matchday -> lock time of the whole-round file
     frames = []
-    for path in sorted(season_dir.glob("round-*.csv")):
+    # retro-round-*.csv: rounds forecast after the fact (pipeline.retro), labelled as such.
+    retro_rounds = set()
+    for path in sorted(season_dir.glob("round-*.csv")) + sorted(season_dir.glob("retro-round-*.csv")):
         frame = pd.read_csv(path).assign(season=season)
+        if path.name.startswith("retro-"):
+            retro_rounds.add(int(frame["matchday"].iloc[0]))
         if "lock_reason" not in frame:
             frame["lock_reason"] = None
             round_locks[int(frame["matchday"].iloc[0])] = frame["generated_at_utc"].iloc[0]
@@ -279,8 +283,10 @@ def export(out_dir=OUT_DIR):
                 "season": season,
                 "matchweek": matchday,
                 "status": round_status(matches),
+                "retrospective": matchday in retro_rounds,
                 # A round locked only in parts has no whole-round file: use its earliest lock.
-                "matchesLockedAt": round_locks.get(matchday, locks[0] if locks else None),
+                # A retrospective round was never locked.
+                "matchesLockedAt": None if matchday in retro_rounds else round_locks.get(matchday, locks[0] if locks else None),
                 "tableLockedAt": snapshots[matchday]["lockedAt"] if matchday in snapshots else None,
             }
         )

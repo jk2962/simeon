@@ -457,7 +457,9 @@ def score_forecasts(forecasts, history):
 
     # A forecast only counts if it was locked before the match kicked off.
     locked_utc = pd.to_datetime(merged["generated_at_utc"], utc=True)
-    late = merged[played & (locked_utc >= merged["played_utc"])]
+    # Retrospective forecasts (pipeline.retro) are made after the fact by design.
+    retro = merged.get("lock_reason", pd.Series(None, index=merged.index)).eq("retrospective")
+    late = merged[played & ~retro & (locked_utc >= merged["played_utc"])]
     if len(late) > 0:
         raise ValueError(
             "Forecast(s) locked at or after kickoff:\n"
