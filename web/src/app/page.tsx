@@ -12,13 +12,13 @@ export default function Home() {
   );
 }
 
-// Sends the visitor to the highest matchweek that has a lock.
+// Sends the visitor to the first matchweek, to read the season from the start.
 async function Latest() {
   const result = await getMatchweeks();
-  const locked = result.ok
-    ? result.data.filter((m) => m?.matchesLockedAt || m?.tableLockedAt).map((m) => m.matchweek)
+  const weeks = result.ok
+    ? result.data.filter((m) => m?.matchesLockedAt || m?.tableLockedAt || m?.retrospective).map((m) => m.matchweek)
     : [];
-  if (locked.length > 0) redirect(`/mw/${Math.max(...locked)}`);
+  if (weeks.length > 0) redirect(`/mw/${Math.min(...weeks)}`);
 
   return (
     <>
