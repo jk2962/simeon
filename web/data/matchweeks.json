@@ -54,5 +54,13 @@
     "retrospective": false,
     "matchesLockedAt": "2026-10-16T07:10:37Z",
     "tableLockedAt": "2026-10-17T06:55:17Z"
+  },
+  {
+    "season": "2026-27",
+    "matchweek": 8,
+    "status": "upcoming",
+    "retrospective": false,
+    "matchesLockedAt": "2026-10-22T15:17:44Z",
+    "tableLockedAt": "2026-10-23T03:25:03Z"
   }
 ]
