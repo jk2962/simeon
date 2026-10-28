@@ -48,7 +48,7 @@ MODEL_NOTES.md documents every modeling decision and a pre-registered change pol
 
 - Next.js 16.4 / React 19.3 / Tailwind 4. Per `web/AGENTS.md`, this Next.js has breaking changes vs. training data: read `web/node_modules/next/dist/docs/` before writing Next code. `next dev` re-adds that block to `web/AGENTS.md`.
 - All data goes through `src/lib/api.ts`. Source priority: `API_BASE_URL` → committed `web/data/` → `mocks/` (dev only, shows a MOCK DATA banner; `USE_MOCKS=1` forces it) → inline error in production. Mocks are never served in production.
-- Team colors live in `src/config/teams.ts` (review at `/dev/colors`). No logos, crests or league branding.
+- Team colors live in `src/config/teams.ts` (review at `/dev/colors`). No team logos or crests; the only league mark is the tab icon (`src/app/icon.png`).
 
 ## Commit style
 

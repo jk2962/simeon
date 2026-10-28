@@ -1,4 +1,4 @@
-# Matchweek (web)
+# Simeon (web)
 
 The website for simeon's forecasts. Self-contained: its own `package.json`, nothing shared with the Python pipeline.
 
@@ -30,4 +30,4 @@ The first of these that applies:
 
 ## Team colors
 
-`src/config/teams.ts`. Review them at `/dev/colors`. No logos, crests or league branding anywhere.
+`src/config/teams.ts`. Review them at `/dev/colors`. No team logos or crests. The only league mark is the tab icon (`src/app/icon.png`).
