@@ -5,11 +5,11 @@
     "home": "IPS",
     "away": "NFO",
     "prediction": {
-      "homeWin": 0.2128550348882746,
-      "draw": 0.2199299229549967,
+      "homeWin": 0.21285503488827467,
+      "draw": 0.21992992295499675,
       "awayWin": 0.5672150421567287,
       "expectedGoals": {
-        "home": 1.0998950868027777,
+        "home": 1.0998950868027775,
         "away": 1.9311613213741108
       },
       "likelyScore": {
@@ -21,9 +21,20 @@
       "lockedAt": "2026-10-22T15:17:44Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 1,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.30107096901910324,
+      "pDraw": 0.2763495991289716,
+      "pAway": 0.42257943185192526
+    },
+    "scores": {
+      "rpsModel": 0.183520084963074,
+      "rpsNaive": 0.14790810321412404,
+      "rpsBookmaker": 0.13460855230519883
+    }
   },
   {
     "id": "560614",
@@ -47,9 +58,20 @@
       "lockedAt": "2026-10-22T15:17:44Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 2,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.21041147132169577,
+      "pDraw": 0.2090087281795511,
+      "pAway": 0.5805798004987531
+    },
+    "scores": {
+      "rpsModel": 0.3908544420225347,
+      "rpsNaive": 0.21769533725667722,
+      "rpsBookmaker": 0.4802614746837706
+    }
   },
   {
     "id": "560616",
@@ -58,7 +80,7 @@
     "away": "EVE",
     "prediction": {
       "homeWin": 0.6008673119108944,
-      "draw": 0.2538047712146968,
+      "draw": 0.25380477121469686,
       "awayWin": 0.1453279168744087,
       "expectedGoals": {
         "home": 1.5444820698006574,
@@ -73,9 +95,20 @@
       "lockedAt": "2026-10-22T15:17:44Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 2,
+      "away": 0
+    },
+    "market": {
+      "pHome": 0.6973876812775531,
+      "pDraw": 0.18878777634584268,
+      "pAway": 0.11382454237660429
+    },
+    "scores": {
+      "rpsModel": 0.09021355306214518,
+      "rpsNaive": 0.21769533725667722,
+      "rpsBookmaker": 0.052265120944909566
+    }
   },
   {
     "id": "560618",
@@ -83,9 +116,9 @@
     "home": "COV",
     "away": "FUL",
     "prediction": {
-      "homeWin": 0.2466198712684103,
-      "draw": 0.2554100837909127,
-      "awayWin": 0.4979700449406768,
+      "homeWin": 0.24661987126841034,
+      "draw": 0.25541008379091273,
+      "awayWin": 0.49797004494067687,
       "expectedGoals": {
         "home": 1.005656650973812,
         "away": 1.5442210643944947
@@ -99,9 +132,20 @@
       "lockedAt": "2026-10-22T15:17:44Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 0,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.28710047183643006,
+      "pDraw": 0.263108788953163,
+      "pAway": 0.44979073921040713
+    },
+    "scores": {
+      "rpsModel": 0.15642771834065658,
+      "rpsNaive": 0.31514214576731553,
+      "rpsBookmaker": 0.19257845579366556
+    }
   },
   {
     "id": "560617",
@@ -110,7 +154,7 @@
     "away": "TOT",
     "prediction": {
       "homeWin": 0.5720750913398107,
-      "draw": 0.2143566447336974,
+      "draw": 0.21435664473369748,
       "awayWin": 0.2135682639264917,
       "expectedGoals": {
         "home": 2.0058050075892204,
@@ -125,9 +169,20 @@
       "lockedAt": "2026-10-22T15:17:44Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 0,
+      "away": 2
+    },
+    "market": {
+      "pHome": 0.5062519569982256,
+      "pDraw": 0.2433148940611627,
+      "pAway": 0.25043314894061164
+    },
+    "scores": {
+      "rpsModel": 0.47287239281752247,
+      "rpsNaive": 0.31514214576731553,
+      "rpsBookmaker": 0.4090707540858102
+    }
   },
   {
     "id": "560612",
@@ -135,8 +190,8 @@
     "home": "LIV",
     "away": "BHA",
     "prediction": {
-      "homeWin": 0.4926582134970831,
-      "draw": 0.2195050688163352,
+      "homeWin": 0.49265821349708316,
+      "draw": 0.21950506881633527,
       "awayWin": 0.2878367176865816,
       "expectedGoals": {
         "home": 1.9504197566655412,
@@ -151,9 +206,20 @@
       "lockedAt": "2026-10-22T15:17:44Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 2,
+      "away": 0
+    },
+    "market": {
+      "pHome": 0.48049088164735565,
+      "pDraw": 0.2465345884892191,
+      "pAway": 0.27297452986342524
+    },
+    "scores": {
+      "rpsModel": 0.17012283219027804,
+      "rpsNaive": 0.21769533725667722,
+      "rpsBookmaker": 0.17220240900284994
+    }
   },
   {
     "id": "560613",
@@ -162,8 +228,8 @@
     "away": "NEW",
     "prediction": {
       "homeWin": 0.350976461255887,
-      "draw": 0.2470031778400091,
-      "awayWin": 0.4020203609041037,
+      "draw": 0.24700317784000914,
+      "awayWin": 0.40202036090410376,
       "expectedGoals": {
         "home": 1.3958800157857985,
         "away": 1.510361341306613
@@ -177,9 +243,20 @@
       "lockedAt": "2026-10-22T15:17:44Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 0,
+      "away": 2
+    },
+    "market": {
+      "pHome": 0.36874763341435707,
+      "pDraw": 0.270981690261271,
+      "pAway": 0.3602706763243718
+    },
+    "scores": {
+      "rpsModel": 0.2403820625644817,
+      "rpsNaive": 0.31514214576731553,
+      "rpsBookmaker": 0.2726142123595828
+    }
   },
   {
     "id": "560615",
@@ -187,7 +264,7 @@
     "home": "MUN",
     "away": "BOU",
     "prediction": {
-      "homeWin": 0.4200436669932267,
+      "homeWin": 0.42004366699322676,
       "draw": 0.2416570928605498,
       "awayWin": 0.3382992401462233,
       "expectedGoals": {
@@ -203,9 +280,20 @@
       "lockedAt": "2026-10-22T15:17:44Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 0,
+      "away": 3
+    },
+    "market": {
+      "pHome": 0.3904793063962048,
+      "pDraw": 0.274824145264191,
+      "pAway": 0.3346965483396041
+    },
+    "scores": {
+      "rpsModel": 0.307142288886091,
+      "rpsNaive": 0.31514214576731553,
+      "rpsBookmaker": 0.29755138575744894
+    }
   },
   {
     "id": "560619",
@@ -213,9 +301,9 @@
     "home": "HUL",
     "away": "BRE",
     "prediction": {
-      "homeWin": 0.3306416043538017,
+      "homeWin": 0.33064160435380174,
       "draw": 0.2752019301377777,
-      "awayWin": 0.3941564655084205,
+      "awayWin": 0.39415646550842054,
       "expectedGoals": {
         "home": 1.1393493837680184,
         "away": 1.2706140307529166
@@ -229,9 +317,20 @@
       "lockedAt": "2026-10-22T15:17:44Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 1,
+      "away": 1
+    },
+    "market": {
+      "pHome": 0.19344717170002398,
+      "pDraw": 0.23328864874990488,
+      "pAway": 0.5732641795500711
+    },
+    "scores": {
+      "rpsModel": 0.13234159491587333,
+      "rpsNaive": 0.14790810321412404,
+      "rpsBookmaker": 0.1830268138969774
+    }
   },
   {
     "id": "560621",
@@ -255,8 +354,19 @@
       "lockedAt": "2026-10-22T15:17:44Z",
       "lockReason": null
     },
-    "result": null,
-    "market": null,
-    "scores": null
+    "result": {
+      "home": 0,
+      "away": 0
+    },
+    "market": {
+      "pHome": 0.35724206349206344,
+      "pDraw": 0.30228174603174596,
+      "pAway": 0.3404761904761905
+    },
+    "scores": {
+      "rpsModel": 0.127941900850933,
+      "rpsNaive": 0.14790810321412404,
+      "rpsBookmaker": 0.12177296410462336
+    }
   }
 ]
